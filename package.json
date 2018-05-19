@@ -1,0 +1,41 @@
+{
+  "name": "digit-backend",
+  "version": "0.1.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "node ./bin/server.js",
+    "test": ""
+  },
+  "author": "niemisami",
+  "license": "MIT",
+  "dependencies": {
+    "bluebird": "^3.5.1",
+    "body-parser": "^1.18.3",
+    "cuid": "^2.1.1",
+    "debug": "^3.1.0",
+    "express": "^4.16.3",
+    "express-promise-router": "^3.0.2",
+    "express-validator": "^5.2.0",
+    "http-errors": "^1.6.3",
+    "jwt-simple": "^0.5.1",
+    "lodash": "^4.17.10",
+    "moment": "^2.22.1",
+    "morgan": "^1.9.0",
+    "nodemailer": "^4.6.4",
+    "passport": "^0.4.0",
+    "passport-jwt": "^4.0.0",
+    "passport-local": "^1.0.0",
+    "pbkdf2-password-hash": "^2.0.0",
+    "pg-promise": "^8.4.4",
+    "serve-favicon": "^2.5.0"
+  },
+  "devDependencies": {
+    "eslint": "^4.19.1",
+    "eslint-config-standard": "^11.0.0",
+    "eslint-plugin-import": "^2.12.0",
+    "eslint-plugin-node": "^6.0.1",
+    "eslint-plugin-promise": "^3.7.0",
+    "eslint-plugin-standard": "^3.1.0"
+  }
+}
