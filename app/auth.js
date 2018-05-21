@@ -5,6 +5,7 @@ const JwtStrategy = require('passport-jwt').Strategy
 const LocalStrategy = require('passport-local').Strategy
 const ExtractJwt = require('passport-jwt').ExtractJwt
 const User = require('./models/userAccount/userAccountModel')
+const { decorate } = require('./models/userAccount/userAccountDecorators')
 
 const localOptions = {}
 
@@ -14,7 +15,7 @@ const localLogin = new LocalStrategy(localOptions, (username, password, done) =>
     .then(user => {
       return Promise.all([user, passwordHash.compare(password, user.password)])
     }).then(([result, match]) =>
-      match ? done(null, result) : done(null, false))
+      match ? done(null, decorate(result)) : done(null, false))
     .catch(done)
 })
 
@@ -24,7 +25,7 @@ const jwtOptions = {
 }
 
 const jwtLogin = new JwtStrategy(jwtOptions, (jwtPayload, done) => {
-  User.findById(jwtPayload.sub)
+  User.findById(jwtPayload.id)
     .then(user =>
       user ? done(null, user) : done(null, false))
     .catch(error => done(error, false))
@@ -34,9 +35,8 @@ passport.use(jwtLogin)
 passport.use(localLogin)
 
 const generateToken = user => {
-  const timestamp = new Date().getTime()
-  return jwt.sign({ ...user, iat: timestamp }, process.env.SECRET_KEY, {
-    expiresIn: '1h'
+  return jwt.sign({ ...user }, process.env.SECRET_KEY, {
+    expiresIn: '1d'
   })
 }
 
