@@ -1,4 +1,8 @@
 const promise = require('bluebird');
+const Umzug = require('umzug')
+const Bluebird = require('bluebird')
+const _ = require('lodash')
+const monitor = require('pg-monitor');
 
 const options = {
   promiseLib: promise,
@@ -6,9 +10,15 @@ const options = {
     console.log(e.query);
   }
 };
+
 const pgp = require('pg-promise')(options);
 
-const getDbName = function() {
+monitor.attach(options)
+monitor.setTheme('matrix')
+monitor.setLog((msg, info) => {
+    // save the screen messages into your own log file;
+});
+const getDbName = () => {
   if(process.env.PGDATABASE) {
     return process.env.PGDATABASE
   }
@@ -35,4 +45,53 @@ const connectionOptions = {
 }
 const db = pgp(connectionOptions);
 
-module.exports = db;
+const runQueriesInSeries = (client, data) => {
+  return Bluebird.mapSeries(data.values, values => {
+    return client.query(data.query, values)
+  })
+}
+
+const getMigrationEngine = () => {
+  return db.connect()
+    .then(client => {
+      const applyInTransaction = (sqlQueries, devDataQueries) => {
+        return client.query('BEGIN')
+          .then(() =>
+            Bluebird.mapSeries(sqlQueries, sql => {
+              if(_.isObject(sql)) {
+                return runQueriesInSeries(client, sql)
+              }
+              return client.query(sql)
+            }))
+          .then(() => {
+            if(process.env.NODE_ENV === 'development' && devDataQueries) {
+              return Bluebird.mapSeries(devDataQueries, data => {
+                return runQueriesInSeries(client, data)
+              })
+            }
+            return true
+
+          })
+          .then(() => client.query('COMMIT'))
+          .catch(err => {
+            client.query('ROLLBACK')
+            throw err
+          })
+      }
+      const umzug = new Umzug({
+        storageOptions: {
+          path: process.cwd() + '/migrations/applied_' + getDbName() + '.json'
+        },
+        migrations: {
+          params: [applyInTransaction, client]
+        }
+      })
+      return [umzug, client]
+    })
+}
+
+module.exports = {
+  pgp,
+  db,
+  getMigrationEngine
+}

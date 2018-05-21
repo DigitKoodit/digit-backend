@@ -5,8 +5,6 @@ const favicon = require('serve-favicon')
 const logger = require('morgan')
 const bodyParser = require('body-parser')
 
-const pgp = require('../db/pgp')
-
 const routes = require('./routes')
 const { authMiddlewares } = require('./auth')
 
@@ -27,7 +25,7 @@ app.enable('trust proxy') // FIXME: is this neccessary?
 app.use(favicon(path.join(__dirname, 'public', 'favicon.ico')))
 
 if(process.env.NODE_ENV !== 'test') {
-  const loggerOutputFormat = ''
+  let loggerOutputFormat = ''
   if(process.env.NODE_ENV === 'development') {
     loggerOutputFormat = ':method :url :statuscolor :response-time ms - :res[content-length]'
   } else {
