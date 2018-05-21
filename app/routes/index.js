@@ -7,13 +7,10 @@ const authenticateLocal = passport.authenticate('local', { session: false })
 const authenticateJwt = passport.authenticate('jwt', { session: false })
 
 router.post('/login', authenticateLocal, (req, res) => {
-  decorateUser(res.user)
-    .then(user =>
-      res.send({
-        user,
-        token: generateToken(user)
-      })
-    )
+  res.send({
+    user: decorateUser(req.user),
+    token: generateToken(req.user)
+  })
 })
 
 router.get('/profile', authenticateJwt, (req, res) => {

@@ -1,23 +1,23 @@
-const promise = require('bluebird');
+const promise = require('bluebird')
 const Umzug = require('umzug')
 const Bluebird = require('bluebird')
 const _ = require('lodash')
-const monitor = require('pg-monitor');
+const monitor = require('pg-monitor')
 
 const options = {
   promiseLib: promise,
   query: (e) => {
-    console.log(e.query);
+    console.log(e.query)
   }
-};
+}
 
-const pgp = require('pg-promise')(options);
+const pgp = require('pg-promise')(options)
 
 monitor.attach(options)
 monitor.setTheme('matrix')
 monitor.setLog((msg, info) => {
-    // save the screen messages into your own log file;
-});
+  // save the screen messages into your own log file;
+})
 const getDbName = () => {
   if(process.env.PGDATABASE) {
     return process.env.PGDATABASE
@@ -43,7 +43,7 @@ const connectionOptions = {
   database: getDbName(),
   port: process.env.PGPORT || 5432
 }
-const db = pgp(connectionOptions);
+const db = pgp(connectionOptions)
 
 const runQueriesInSeries = (client, data) => {
   return Bluebird.mapSeries(data.values, values => {
@@ -70,7 +70,6 @@ const getMigrationEngine = () => {
               })
             }
             return true
-
           })
           .then(() => client.query('COMMIT'))
           .catch(err => {
