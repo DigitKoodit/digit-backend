@@ -1,24 +1,32 @@
+const { Conflict, NotFound } = require('http-errors')
 const router = require('express-promise-router')()
 const cuid = require('cuid')
 const moment = require('moment')
 const nodemailer = require('nodemailer')
 const passwordHash = require('pbkdf2-password-hash')
 
-const { validateRegistrationCreate, validateRegistrationUpdate } = require('../../models/user/userValidator')
-const { fetchUserForRegistration, save } = require('../../models/user/userModel')
+const { validateRegistrationCreate, validateRegistrationUpdate } = require('../../models/userAccount/userAccountValidator')
+const { decorateRegistration } = require('../../models/userAccount/userAccountDecorators')
+const { fetchUserForRegistration, save } = require('../../models/userAccount/userAccountModel')
 
 router.post('/', validateRegistrationCreate(), (req, res) => {
   const nodeEnv = process.env.NODE_ENV
-  const token = nodeEnv === 'test' ? 'testtoken' : cuid()
-  const { email } = req.body
-  return fetchUserForRegistration({ email: email })
-    .then(userResult => {
-      const data = {
-        id: userResult.user_id,
-        token,
-        tokenValidUntil: moment().add(2, 'days')
+  const registrationToken = nodeEnv === 'test' ? 'testtoken' : cuid()
+  const { email, username } = req.body
+  return Promise.all([
+    fetchUserForRegistration({ email, username }),
+    passwordHash.hash(req.body.password)])
+    .then(([result, passwordHash]) => {
+      if(result) {
+        throw new Conflict('Email or username already exists')
       }
-      return save(data, userResult.user_id)
+      const newUser = {
+        ...req.body,
+        password: passwordHash,
+        registrationToken,
+        registrationTokenValid: moment().add(2, 'days')
+      }
+      return save(newUser)
     })
     .then(saved => {
       let mailTransporter
@@ -40,7 +48,7 @@ router.post('/', validateRegistrationCreate(), (req, res) => {
         sender: 'sami@nieminen.fi',
         to: email,
         subject: 'Rekisteröityminen Digit-intraan',
-        text: 'Tervetuloa Digitin nettisivun käyttäjäksi!\n\nPääset luomaan käyttäjätunnuksen avaamalla seuraavan linkin selaimessasi: \n' + req.protocol + '://' + req.hostname + '/register/' + token + '\n\nTerveisin Digit ry'
+        text: 'Tervetuloa Digitin nettisivun käyttäjäksi!\n\nViimeistele liittyminen klikkaamalla oheista linkkiä: \n' + req.protocol + '://' + req.hostname + '/register/' + registrationToken + '\n\nTerveisin Digit ry'
       })
     }).then(() => {
       return res.status(201).send({ success: true })
@@ -48,21 +56,21 @@ router.post('/', validateRegistrationCreate(), (req, res) => {
 })
 
 router.put('/', validateRegistrationUpdate(), (req, res) =>
-  Promise.all([
-    fetchUserForRegistration({ email: req.body.email, token: req.body.token }),
-    passwordHash.hash(req.body.password)
-  ])
-    .then(([userResult, passwordHash]) => {
-      const data = {
-        id: userResult.user_id,
-        username: req.body.username,
-        password: passwordHash,
-        token: null,
-        tokenValidUntil: null
+  fetchUserForRegistration({ email: req.body.email, registrationToken: req.body.registrationToken })
+    .then((userResult) => {
+      if(!userResult) {
+        throw new NotFound('User not found')
       }
-      return save(data, userResult.user_id)
+      const data = {
+        ...decorateRegistration(userResult),
+        registrationToken: null,
+        registrationTokenValid: null
+      }
+      return save(data, userResult.id)
     })
     .then(saved => {
       res.send({ success: true })
     })
 )
+
+module.exports = router

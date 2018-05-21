@@ -29,6 +29,8 @@ const validateUpdate = () =>
 const validateRegistrationCreate = () =>
   getValidator([
     checkSchema({
+      username: getStringValidator('Käyttäjätunnus'),
+      password: getStringValidator('Salasana'),
       email: getEmailValidator('Sähköposti')
     })
   ])
@@ -36,10 +38,8 @@ const validateRegistrationCreate = () =>
 const validateRegistrationUpdate = () =>
   getValidator([
     checkSchema({
-      username: getStringValidator('Käyttäjätunnus'),
-      password: getStringValidator('Salasana'),
       email: getEmailValidator('Sähköposti'),
-      token: getStringValidator('Varmenne')
+      registrationToken: getStringValidator('Varmenne')
     })
   ])
 

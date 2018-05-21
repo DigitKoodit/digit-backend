@@ -3,6 +3,17 @@ const app = require('../app')
 const debug = require('debug')('digit:server')
 const http = require('http')
 
+const normalizePort = val => {
+  const port = parseInt(val, 10)
+  if(isNaN(port)) {
+    return val
+  }
+  if(port >= 0) {
+    return port
+  }
+  return false
+}
+
 const port = normalizePort(process.env.PORT || '3001')
 app.set('port', port)
 
@@ -12,11 +23,7 @@ migrate.up()
   .then(() => {
     const server = http.createServer(app)
     server.listen(port)
-    server.on('error', onError)
-    server.on('listening', onListening)
-
     // app.io = require('../app/socket')(server)
-
     const onError = error => {
       if(error.syscall !== 'listen') {
         throw error
@@ -36,7 +43,7 @@ migrate.up()
         default:
           throw error
       }
-    }
+    }  
 
     const onListening = () => {
       const addr = server.address()
@@ -45,18 +52,12 @@ migrate.up()
         : 'port ' + addr.port
       debug(`Listening on ${bind}`)
     }
+
+    server.on('error', onError)
+    server.on('listening', onListening)
+   
   }).catch(err => {
     console.error(err)
     process.exit(1)
   })
 
-const normalizePort = val => {
-  const port = parseInt(val, 10)
-  if(isNaN(port)) {
-    return val
-  }
-  if(port >= 0) {
-    return port
-  }
-  return false
-}
