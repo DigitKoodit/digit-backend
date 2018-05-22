@@ -10,8 +10,12 @@ User.findOne = ({ id, username }) => {
   return db.one(sql, where)
 }
 
-User.findById = id =>
-  db.oneOrNone('SELECT * FROM user_account WHERE user_account_id = $1', id)
+User.findById = id => {
+  if(!id) {
+    throw new NotFound('user not found')
+  }
+  return db.one('SELECT * FROM user_account WHERE user_account_id = $1', id)
+}
 
 const create = data => {
   const sql = `INSERT INTO user_account (username, password, email, active, registration_token, registration_token_valid)
