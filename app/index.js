@@ -52,6 +52,7 @@ app.use(function(req, res, next) {
 app.use(function(err, req, res, next) {
   res.status(err.status || 500)
   if(err.status === 400) {
+    console.log(err)
     res.send({ message: err.message, validationErrors: err.data })
   } else {
     if(process.env.NODE_ENV !== 'test') {
