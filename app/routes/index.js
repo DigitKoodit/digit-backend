@@ -1,17 +1,10 @@
 const router = require('express-promise-router')()
 const passport = require('passport')
-const { generateToken } = require('../auth')
-const { decorate: decorateUser } = require('../models/userAccount/userAccountDecorators')
-
-const authenticateLocal = passport.authenticate('local', { session: false })
+const { authenticateLocal } = require('../auth')
+const { validateLogin } = require('../models/userAccount/userAccountValidator')
 const authenticateJwt = passport.authenticate('jwt', { session: false })
 
-router.post('/login', authenticateLocal, (req, res) => {
-  res.send({
-    user: decorateUser(req.user),
-    token: generateToken(req.user)
-  })
-})
+router.post('/login', validateLogin(), authenticateLocal)
 
 router.get('/profile', authenticateJwt, (req, res) => {
   res.send(req.user)

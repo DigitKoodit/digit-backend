@@ -8,14 +8,17 @@ const {
 } = require('../../helpers/validatorHelpers')
 
 const schema = {
-  username: getStringValidator('Käyttäjätunnus'),
-  password: getStringValidator('Salasana'),
+  username: getStringValidator('Käyttäjätunnus', 3),
+  password: getStringValidator('Salasana'), // TODO: password validation min length etc
   email: getEmailValidator('Sähköposti')
 }
 
-const validateCreate = () =>
+const validateLogin = () =>
   getValidator([
-    checkSchema(schema)
+    checkSchema(({
+      username: getStringValidator('Käyttäjätunnus', 3),
+      password: getStringValidator('Salasana') // TODO: password validation
+    }))
   ])
 
 const validateUpdate = () =>
@@ -28,11 +31,7 @@ const validateUpdate = () =>
 
 const validateRegistrationCreate = () =>
   getValidator([
-    checkSchema({
-      username: getStringValidator('Käyttäjätunnus'),
-      password: getStringValidator('Salasana'),
-      email: getEmailValidator('Sähköposti')
-    })
+    checkSchema(schema)
   ])
 
 const validateRegistrationUpdate = () =>
@@ -44,7 +43,7 @@ const validateRegistrationUpdate = () =>
   ])
 
 module.exports = {
-  validateCreate,
+  validateLogin,
   validateUpdate,
   validateRegistrationCreate,
   validateRegistrationUpdate

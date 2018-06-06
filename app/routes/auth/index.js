@@ -1,13 +1,18 @@
-const { Conflict, NotFound } = require('http-errors')
+const { NotFound } = require('http-errors')
 const router = require('express-promise-router')()
 const cuid = require('cuid')
 const moment = require('moment')
 const nodemailer = require('nodemailer')
 const passwordHash = require('pbkdf2-password-hash')
+const createError = require('http-errors')
 
 const { validateRegistrationCreate, validateRegistrationUpdate } = require('../../models/userAccount/userAccountValidator')
 const { decorateRegistration } = require('../../models/userAccount/userAccountDecorators')
 const { fetchUserForRegistration, save } = require('../../models/userAccount/userAccountModel')
+
+const CONFLICT_REGISTRATION_COMMON_MESSAGE = 'Ongelmia rekisteröitymisessä'
+const CONFLICT_REGISTRATION_USERNAME_MESSAGE = 'Käyttäjänimi varattu'
+const CONFLICT_REGISTRATION_EMAIL_MESSAGE = 'Sähköpostisoite jo käytössä'
 
 router.post('/', validateRegistrationCreate(), (req, res) => {
   const nodeEnv = process.env.NODE_ENV
@@ -17,8 +22,17 @@ router.post('/', validateRegistrationCreate(), (req, res) => {
     fetchUserForRegistration({ email, username }),
     passwordHash.hash(req.body.password)])
     .then(([result, passwordHash]) => {
-      if(result) {
-        throw new Conflict('Email or username already exists')
+      if(result && result.length > 0) {
+        const errors = []
+        result.forEach(user => {
+          if(user.username === username) {
+            errors.push({ param: 'username', msg: CONFLICT_REGISTRATION_USERNAME_MESSAGE })
+          }
+          if(user.email === email) {
+            errors.push({ param: 'email', msg: CONFLICT_REGISTRATION_EMAIL_MESSAGE })
+          }
+        })
+        return Promise.reject(errors)
       }
       const newUser = {
         ...req.body,
@@ -48,11 +62,12 @@ router.post('/', validateRegistrationCreate(), (req, res) => {
         sender: 'sami@nieminen.fi',
         to: email,
         subject: 'Rekisteröityminen Digit-intraan',
-        text: 'Tervetuloa Digitin nettisivun käyttäjäksi!\n\nViimeistele liittyminen klikkaamalla oheista linkkiä: \n' + req.protocol + '://' + req.hostname + '/register/' + registrationToken + '\n\nTerveisin Digit ry'
+        text: 'Tervetuloa Digitin nettisivun käyttäjäksi!\n\nViimeistele liittyminen klikkaamalla oheista linkkiä: \n' + req.protocol + '://' + req.hostname + '/registration/' + registrationToken + '\n\nTerveisin Digit ry'
       })
     }).then(() => {
       return res.status(201).send({ success: true })
     })
+    .catch(handleRegistrationError)
 })
 
 router.put('/', validateRegistrationUpdate(), (req, res) =>
@@ -72,5 +87,9 @@ router.put('/', validateRegistrationUpdate(), (req, res) =>
       res.send({ success: true })
     })
 )
+
+const handleRegistrationError = err => {
+  throw createError(400, CONFLICT_REGISTRATION_COMMON_MESSAGE, { ...err, data: err })
+}
 
 module.exports = router

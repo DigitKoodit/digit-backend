@@ -52,17 +52,19 @@ const restoreContext = (req, res, next) => {
   next()
 }
 
-const getStringValidator = name => ({
-  in: ['body'],
-  isString: {
-    errorMessage: `${name} pitää olla tekstimuodossa`
-  },
-  trim: true,
-  isLength: {
-    errorMessage: `${name} puuttuu`,
-    options: { min: 1 }
-  }
-})
+const getStringValidator = (name, min = 1) => {
+  return ({
+    in: ['body'],
+    isString: {
+      errorMessage: `${name} pitää olla tekstimuodossa`
+    },
+    trim: true,
+    isLength: {
+      errorMessage: `${name} puuttuu`,
+      options: { min }
+    }
+  })
+}
 
 const getIntValidator = name => ({
   in: ['body'],

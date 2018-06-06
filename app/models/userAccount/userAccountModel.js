@@ -19,7 +19,7 @@ User.findById = id => {
 
 const create = data => {
   const sql = `INSERT INTO user_account (username, password, email, active, registration_token, registration_token_valid)
-      VALUES ($[username], $[password], $[email], $[active], $[registrationToken], $[registrationTokenValid]) RETURNING user_account_id`
+      VALUES ($[username], $[password], $[email], $[active], $[registrationToken], $[registrationTokenValid]) ON CONFLICT DO NOTHING RETURNING user_account_id`
   const params = {
     ...data,
     active: false
@@ -56,7 +56,7 @@ User.fetchUserForRegistration = ({ email, username, registrationToken }) => {
   const whereSql = registrationToken ? 'email = $[email] AND registration_token = $[registrationToken]' : '(email = $[email] OR username = $[username]) AND registration_token IS NULL'
   const where = pgp.as.format(whereSql, { email, username, registrationToken })
   const sql = 'SELECT * FROM user_account WHERE $1:raw'
-  return db.oneOrNone(sql, where)
+  return db.any(sql, where)
 }
 
 module.exports = User

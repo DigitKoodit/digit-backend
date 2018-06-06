@@ -4,19 +4,47 @@ const jwt = require('jsonwebtoken')
 const JwtStrategy = require('passport-jwt').Strategy
 const LocalStrategy = require('passport-local').Strategy
 const ExtractJwt = require('passport-jwt').ExtractJwt
+const createError = require('http-errors')
 const User = require('./models/userAccount/userAccountModel')
 const { decorate } = require('./models/userAccount/userAccountDecorators')
 
 const localOptions = {}
 
+const LOGIN_COMMON_ERROR_MESSAGE = 'Käyttäjänimi tai salasana väärin'
+const LOGIN_COMMON_INACTIVE_USER_MESSAGE = 'Käyttäjää ei ole aktivoitu'
+
+const authenticateLocal = (req, res, next) => {
+  passport.authenticate('local', (err, user, info) => {
+    if(err) {
+      next(err)
+    }
+    if(!user) {
+      return next(createError(401, info.message, {}))
+    }
+    res.send({
+      user: decorate(user),
+      token: generateToken(user)
+    })
+  })(req, res, next)
+}
+
 const localLogin = new LocalStrategy(localOptions, (username, password, done) => {
   // TODO: find out does passport validate inputs?
   return User.findOne({ username })
     .then(user => {
+      // If token exists the user hasn't been confirmed yet
+      if(user.registration_token) {
+        return [null, false, { message: LOGIN_COMMON_ERROR_MESSAGE }]
+      } else if(!user.active) {
+        return [null, false, { message: LOGIN_COMMON_INACTIVE_USER_MESSAGE }]
+      }
       return Promise.all([user, passwordHash.compare(password, user.password)])
-    }).then(([result, match]) =>
-      match ? done(null, decorate(result)) : done(null, false))
-    .catch(done)
+    }).then(([result, match, error]) =>
+      match ? done(null, decorate(result)) : done(null, false, error)
+    )
+    .catch(err =>
+      done(null, false, { message: LOGIN_COMMON_ERROR_MESSAGE, error: err })
+    )
 })
 
 const jwtOptions = {
@@ -41,6 +69,7 @@ const generateToken = user => {
 }
 
 module.exports = {
+  authenticateLocal,
   generateToken,
   authMiddlewares: [
     passport.initialize()
