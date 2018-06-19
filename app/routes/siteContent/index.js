@@ -4,6 +4,8 @@ const { validateCreate, validateUpdate } = require('../../models/siteContent/sit
 const { decorate, decorateList } = require('../../models/siteContent/sitePageDecorators')
 const { findById, findAll, save, remove } = require('../../models/siteContent/sitePageModel')
 
+router.use('/navigation', require('./navItem'))
+
 router.get('/', (req, res) =>
   findAll()
     .then(decorateList)

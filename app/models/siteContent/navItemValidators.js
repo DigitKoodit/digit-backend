@@ -19,13 +19,12 @@ const validateUpdate = () =>
   getValidator([
     checkSchema(schema),
     checkSchema({
-      sitemapId: {
+      navItemId: {
         in: ['params'],
         isInt: true,
         toInt: true
       }
     })
-
   ])
 
 module.exports = {
