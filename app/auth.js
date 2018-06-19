@@ -38,7 +38,7 @@ const localLogin = new LocalStrategy(localOptions, (username, password, done) =>
       } else if(!user.active) {
         return [null, false, { message: LOGIN_COMMON_INACTIVE_USER_MESSAGE }]
       }
-      return Promise.all([user, passwordHash.compare(password, user.password)])
+      return Promise.all([user, passwordHash.compare(password, user.password), { message: LOGIN_COMMON_ERROR_MESSAGE }])
     }).then(([result, match, error]) =>
       match ? done(null, decorate(result)) : done(null, false, error)
     )

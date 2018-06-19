@@ -4,11 +4,12 @@ const {
   getStringValidator,
   getBooleanValidator,
   getEmailValidator,
-  setIsOptional
+  setIsOptional,
+  getLowerCaseStringValidator
 } = require('../../helpers/validatorHelpers')
 
 const schema = {
-  username: getStringValidator('Käyttäjätunnus', 3),
+  username: getLowerCaseStringValidator('Käyttäjätunnus', 3),
   password: getStringValidator('Salasana'), // TODO: password validation min length etc
   email: getEmailValidator('Sähköposti')
 }
@@ -16,7 +17,7 @@ const schema = {
 const validateLogin = () =>
   getValidator([
     checkSchema(({
-      username: getStringValidator('Käyttäjätunnus', 3),
+      username: getLowerCaseStringValidator('Käyttäjätunnus', 3),
       password: getStringValidator('Salasana') // TODO: password validation
     }))
   ])
