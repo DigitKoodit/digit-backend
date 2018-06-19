@@ -6,7 +6,7 @@ const nodemailer = require('nodemailer')
 const passwordHash = require('pbkdf2-password-hash')
 const createError = require('http-errors')
 
-const { validateRegistrationCreate, validateRegistrationUpdate } = require('../../models/userAccount/userAccountValidator')
+const { validateRegistrationCreate, validateRegistrationUpdate } = require('../../models/userAccount/userAccountValidators')
 const { decorateRegistration } = require('../../models/userAccount/userAccountDecorators')
 const { fetchUserForRegistration, save } = require('../../models/userAccount/userAccountModel')
 
