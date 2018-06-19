@@ -66,6 +66,17 @@ const getStringValidator = (name, min = 1) => {
   })
 }
 
+const getLowerCaseStringValidator = (name, min = 1) => {
+  return ({
+    ...getStringValidator(name, min),
+    customSanitizer: {
+      options: (value) => {
+        return value.toLowerCase()
+      }
+    }
+  })
+}
+
 const getIntValidator = name => ({
   in: ['body'],
   isInt: true,
@@ -122,6 +133,7 @@ module.exports = {
   getDecimalValidator,
   getBooleanValidator,
   getStringArrayValidator,
+  getLowerCaseStringValidator,
   getEmailValidator,
   setIsOptional
 }

@@ -7,7 +7,7 @@ const monitor = require('pg-monitor')
 const options = {
   promiseLib: promise,
   query: (e) => {
-    console.log(e.query)
+    // console.log(e.query)
   }
 }
 

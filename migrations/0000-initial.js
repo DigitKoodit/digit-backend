@@ -15,8 +15,8 @@ const sqlQueriesDown = [
 ]
 
 module.exports = {
-  up: (applyInTransaction, client) =>
+  up: (applyInTransaction) =>
     applyInTransaction(sqlQueries),
-  down: (applyInTransaction, client) =>
+  down: (applyInTransaction) =>
     applyInTransaction(sqlQueriesDown)
 }
