@@ -1,69 +1,47 @@
 const { NotFound } = require('http-errors')
-const moment = require('moment')
-const { db, pgp } = require('../../../db/pgp')
+const { db } = require('../../../db/pgp')
 
-const SitePage = {}
+const Sitemap = {}
 
-SitePage.findOne = ({ id }) => {
-  const whereSql = 'site_page_id = $1'
-  const where = pgp.as.format(whereSql, id)
-  const sql = 'SELECT * FROM site_page WHERE $1:raw'
-  return db.one(sql, where)
-}
-
-SitePage.findById = id => {
+Sitemap.findById = id => {
   if(!id) {
-    throw new NotFound('Site page not found')
+    throw new NotFound('Sitemap item not found')
   }
-  return db.one('SELECT * FROM site_page WHERE site_page_id = $1', id)
+  return db.one('SELECT * FROM sitemap WHERE sitemap_id = $1', id)
 }
 
-SitePage.findAll = () => db.any('SELECT * FROM site_page')
+Sitemap.findAll = () => db.any('SELECT * FROM sitemap')
 
-SitePage.save = (data, id) => id ? update(data, id) : create(data)
+Sitemap.save = (data, id) => id ? update(data, id) : create(data)
 
-const create = data => {
-  const dataWithTimestamp = {
-    ...data,
-    createdAt: moment().format(),
-    updatedAt: null
-  }
-  const sql = `INSERT INTO site_page (site_page_data)
-      VALUES ($[dataWithTimestamp])`
-  const params = {
-    ...dataWithTimestamp
-  }
+const create = ({ sitePageId, parentId, ...data }) => {
+  const sql = `INSERT INTO sitemap (site_page_id, parent_id, sitemap_data)
+      VALUES ($[sitePageId],$[parentId], $[dataWithTimestamp])`
+  const params = { sitePageId, parentId, data }
   return db.one(sql, params)
-    .then(result => SitePage.findById(result.site_page_id))
+    .then(result => Sitemap.findById(result.sitemap_id))
 }
 
-const update = (data, id) => {
-  const dataWithTimestamp = {
-    ...data,
-    updatedAt: moment().format()
-  }
-
-  const sql = `UPDATE site_page SET 
-    site_page_data = $[dataWithTimestamp]
-  WHERE site_page_id = $[id] RETURNING site_page_id`
+const update = ({ id, sitePageId, parentId, ...data }) => {
+  const sql = `UPDATE sitemap 
+  SET site_page_id = $[sitePageId], parent_id = $[parentId], [sitemap_data = $[data],
+  WHERE sitemap_id = $[id] RETURNING sitemap_id`
   const params = {
     id,
-    ...dataWithTimestamp
+    sitePageId,
+    parentId,
+    data
   }
   return db.one(sql, params)
     .then(result => {
-      if(!result) {
-        throw new NotFound('site_page not found')
-      }
-      return result.site_page_id
+      if(!result) { throw new NotFound('sitemap not found') }
+      return result.sitemap_id
     })
 }
 
-SitePage.remove = id => {
-  if(!id) {
-    throw new NotFound('Site page not found')
-  }
-  return db.one('DELETE FROM site_page WHERE site_page_id = $1 RETURNING site_page_id', id)
+Sitemap.remove = id => {
+  if(!id) { throw new NotFound('Sitemap item not found') }
+  return db.one('DELETE FROM sitemap WHERE sitemap_id = $1 RETURNING sitemap_id', id)
 }
 
-module.exports = SitePage
+module.exports = Sitemap

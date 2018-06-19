@@ -1,11 +1,13 @@
 const { checkSchema } = require('express-validator/check')
-const { getValidator, getStringValidator } = require('../../helpers/validatorHelpers')
+const { getValidator, getStringValidator, getBooleanValidator, getIntValidator, setIsOptional } = require('../../helpers/validatorHelpers')
 
 const schema = {
-  title: getStringValidator('Otsikko'),
-  description: getStringValidator('Kuvaus'),
-  published: getStringValidator('Julkaistu'),
-  content: getStringValidator('Sisältö')
+  path: getStringValidator('URL'),
+  title: getStringValidator('Nimi'),
+  isCustom: getBooleanValidator('Komponenttitieto'),
+  parentId: setIsOptional(getStringValidator('Parent')),
+  sitePageId: setIsOptional(getIntValidator('Sisältötunniste')),
+  weight: getIntValidator('Paino')
 }
 
 const validateCreate = () =>
@@ -14,7 +16,17 @@ const validateCreate = () =>
   ])
 
 const validateUpdate = () =>
-  validateCreate()
+  getValidator([
+    checkSchema(schema),
+    checkSchema({
+      sitemapId: {
+        in: ['params'],
+        isInt: true,
+        toInt: true
+      }
+    })
+
+  ])
 
 module.exports = {
   validateCreate,
