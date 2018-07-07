@@ -5,8 +5,8 @@ const { validateLogin } = require('../models/userAccount/userAccountValidators')
 const authenticateJwt = passport.authenticate('jwt', { session: false })
 
 router.post('/login', validateLogin(), authenticateLocal)
-router.get('/profile', authenticateJwt, (req, res) => res.send(req.user))
-router.use('/content', require('./siteContent'))
+router.use('/content', require('./publicSiteContent'))
 router.use('/registration', require('./auth'))
+router.use('/intra', authenticateJwt, require('./intra'))
 
 module.exports = router

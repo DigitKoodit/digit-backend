@@ -6,7 +6,7 @@ const LocalStrategy = require('passport-local').Strategy
 const ExtractJwt = require('passport-jwt').ExtractJwt
 const createError = require('http-errors')
 const User = require('./models/userAccount/userAccountModel')
-const { decorate } = require('./models/userAccount/userAccountDecorators')
+const { decoratePublic } = require('./models/userAccount/userAccountDecorators')
 
 const localOptions = {}
 
@@ -22,7 +22,7 @@ const authenticateLocal = (req, res, next) => {
       return next(createError(401, info.message, {}))
     }
     res.send({
-      user: decorate(user),
+      user: decoratePublic(user),
       token: generateToken(user)
     })
   })(req, res, next)
@@ -40,7 +40,7 @@ const localLogin = new LocalStrategy(localOptions, (username, password, done) =>
       }
       return Promise.all([user, passwordHash.compare(password, user.password), { message: LOGIN_COMMON_ERROR_MESSAGE }])
     }).then(([result, match, error]) =>
-      match ? done(null, decorate(result)) : done(null, false, error)
+      match ? done(null, decoratePublic(result)) : done(null, false, error)
     )
     .catch(err =>
       done(null, false, { message: LOGIN_COMMON_ERROR_MESSAGE, error: err })

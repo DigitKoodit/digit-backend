@@ -1,10 +1,10 @@
-const decorate = user => ({
+const decoratePublic = user => ({
   id: user.user_account_id,
   username: user.username,
   email: user.email
 })
 
-const decorateRegistration = user => ({
+const decorate = user => ({
   id: user.user_account_id,
   username: user.username,
   email: user.email,
@@ -18,7 +18,7 @@ const decorateList = users =>
   users.map(decorate)
 
 module.exports = {
-  decorate,
+  decoratePublic,
   decorateList,
-  decorateRegistration
+  decorate
 }

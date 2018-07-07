@@ -7,7 +7,7 @@ const passwordHash = require('pbkdf2-password-hash')
 const createError = require('http-errors')
 
 const { validateRegistrationCreate, validateRegistrationUpdate } = require('../../models/userAccount/userAccountValidators')
-const { decorateRegistration } = require('../../models/userAccount/userAccountDecorators')
+const { decoratePublic } = require('../../models/userAccount/userAccountDecorators')
 const { fetchUserForRegistration, save } = require('../../models/userAccount/userAccountModel')
 
 const CONFLICT_REGISTRATION_COMMON_MESSAGE = 'Ongelmia rekisteröitymisessä'
@@ -77,7 +77,7 @@ router.put('/', validateRegistrationUpdate(), (req, res) =>
         throw new NotFound('User not found')
       }
       const data = {
-        ...decorateRegistration(userResult),
+        ...decoratePublic(userResult),
         registrationToken: null,
         registrationTokenValid: null
       }
