@@ -1,14 +1,10 @@
-const promise = require('bluebird')
 const Umzug = require('umzug')
 const Bluebird = require('bluebird')
 const _ = require('lodash')
 const monitor = require('pg-monitor')
 
 const options = {
-  promiseLib: promise,
-  query: (e) => {
-    // console.log(e.query)
-  }
+  promiseLib: Bluebird
 }
 
 const pgp = require('pg-promise')(options)

@@ -8,7 +8,8 @@ const insertNavitems = {
       path: '/',
       title: 'Etusivu',
       weight: 0,
-      isCustom: true
+      isCustom: true,
+      isVisible: true
     }
   }, {
     parentId: null,
@@ -17,7 +18,8 @@ const insertNavitems = {
       path: '/viralliset',
       title: 'Viralliset',
       weight: 1,
-      isCustom: true
+      isCustom: true,
+      isVisible: true
     }
   }, {
     parentId: 2,
@@ -26,7 +28,8 @@ const insertNavitems = {
       path: '/esittely',
       title: 'Esittely',
       weight: 0,
-      isCustom: true
+      isCustom: true,
+      isVisible: true
     }
   }]
 }
