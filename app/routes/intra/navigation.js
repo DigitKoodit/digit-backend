@@ -1,22 +1,9 @@
 const router = require('express-promise-router')({ mergeParams: true })
+const publicRouter = require('express-promise-router')()
 
 const { validateCreate, validateUpdate } = require('../../models/siteContent/navItemValidators')
-const { decorate, decorateList, constructNavigation } = require('../../models/siteContent/navItemDecorators')
+const { decorate, decorateList } = require('../../models/siteContent/navItemDecorators')
 const { findById, findAll, save, remove } = require('../../models/siteContent/navItemModel')
-
-router.get('/', (req, res) =>
-  findAll()
-    .then(decorateList)
-    .then(constructNavigation)
-    .then(result => res.send(result)))
-
-router.param('navItemId', (req, _, next, value) => {
-  return findById(value)
-    .then(resultNavItem => {
-      req.resultNavItem = resultNavItem
-      next()
-    })
-})
 
 router.post('/', validateCreate(), (req, res) => {
   let newItem = {
@@ -41,4 +28,30 @@ router.delete('/:navItemId', (req, res) => {
     .then(id => res.status(204).send())
 })
 
-module.exports = router
+router.get('/', (req, res) =>
+  findAll()
+    .then(decorateList)
+    .then(result => res.send(result)))
+
+// TODO: *doc* publicRouter can be included to different routes which doesn't require authentication
+publicRouter.get('/', (req, res) =>
+  findAll(true)
+    .then(decorateList)
+    .then(result => res.send(result)))
+
+const findNavItemById = (req, _, next, value) =>
+  findById(value)
+    .then(resultNavItem => {
+      console.log(resultNavItem, value)
+      req.resultNavItem = resultNavItem
+      next()
+    })
+
+publicRouter.param('navItemId', findNavItemById)
+
+router.param('navItemId', findNavItemById)
+
+module.exports = {
+  router,
+  publicRouter
+}
