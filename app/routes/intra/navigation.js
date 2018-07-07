@@ -42,7 +42,6 @@ publicRouter.get('/', (req, res) =>
 const findNavItemById = (req, _, next, value) =>
   findById(value)
     .then(resultNavItem => {
-      console.log(resultNavItem, value)
       req.resultNavItem = resultNavItem
       next()
     })

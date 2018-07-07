@@ -5,9 +5,10 @@ const schema = {
   path: getStringValidator('URL'),
   title: getStringValidator('Nimi'),
   isCustom: getBooleanValidator('Komponenttitieto'),
-  parentId: setIsOptional(getStringValidator('Parent')),
+  parentId: setIsOptional(getIntValidator('Parent')),
   sitePageId: setIsOptional(getIntValidator('Sisältötunniste')),
-  weight: getIntValidator('Paino')
+  weight: getIntValidator('Paino'),
+  isVisible: getBooleanValidator('Näkyvyys')
 }
 
 const validateCreate = () =>
