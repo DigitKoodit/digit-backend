@@ -5,5 +5,6 @@ const { decoratePublic } = require('../../models/userAccount/userAccountDecorato
 router.get('/profile', (req, res) => Promise.resolve(decoratePublic(req.user)).then(user => res.send(user)))
 router.use('/accounts', require('./userManagement'))
 router.use('/cms/content', require('./siteContent').router)
+router.use('/cms/sponsor', require('./sponsor').router)
 
 module.exports = router
