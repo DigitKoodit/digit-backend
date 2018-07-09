@@ -1,10 +1,10 @@
 const { checkSchema } = require('express-validator/check')
-const { getValidator, getStringValidator } = require('../../helpers/validatorHelpers')
+const { getValidator, getStringValidator, getBooleanValidator } = require('../../helpers/validatorHelpers')
 
 const schema = {
   title: getStringValidator('Otsikko'),
   description: getStringValidator('Kuvaus'),
-  published: getStringValidator('Julkaistu'),
+  published: getBooleanValidator('Julkaistu'),
   content: getStringValidator('Sisältö')
 }
 

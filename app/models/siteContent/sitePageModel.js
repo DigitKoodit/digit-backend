@@ -1,21 +1,14 @@
 const { NotFound } = require('http-errors')
 const moment = require('moment')
-const { db, pgp } = require('../../../db/pgp')
+const { db } = require('../../../db/pgp')
 
 const SitePage = {}
-
-SitePage.findOne = ({ id }) => {
-  const whereSql = 'site_page_id = $1'
-  const where = pgp.as.format(whereSql, id)
-  const sql = 'SELECT * FROM site_page WHERE $1:raw'
-  return db.one(sql, where)
-}
 
 SitePage.findById = id => {
   if(!id) {
     throw new NotFound('Site page not found')
   }
-  return db.one('SELECT * FROM site_page WHERE site_page_id = $1', id)
+  return db.one(`SELECT * FROM site_page WHERE site_page_id = ${id}`)
 }
 
 SitePage.findAll = () => db.any('SELECT * FROM site_page')
@@ -29,11 +22,9 @@ const create = data => {
     updatedAt: null
   }
   const sql = `INSERT INTO site_page (site_page_data)
-      VALUES ($[dataWithTimestamp])`
-  const params = {
-    ...dataWithTimestamp
-  }
-  return db.one(sql, params)
+      VALUES ($1) RETURNING site_page_id`
+
+  return db.one(sql, [dataWithTimestamp])
     .then(result => SitePage.findById(result.site_page_id))
 }
 
@@ -48,15 +39,17 @@ const update = (data, id) => {
   WHERE site_page_id = $[id] RETURNING site_page_id`
   const params = {
     id,
-    ...dataWithTimestamp
+    dataWithTimestamp
   }
   return db.one(sql, params)
     .then(result => {
+      console.log('res', result)
       if(!result) {
         throw new NotFound('site_page not found')
       }
       return result.site_page_id
     })
+    .then(SitePage.findById)
 }
 
 SitePage.remove = id => {

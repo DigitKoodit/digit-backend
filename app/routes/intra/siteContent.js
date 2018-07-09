@@ -12,20 +12,17 @@ router.get('/', (req, res) =>
     .then(decorateList)
     .then(result => res.send(result)))
 
-publicRouter.param('sitePageId', (req, _, next, value) => {
-  return findById(value)
-    .then(resultSitePage => {
-      req.resultSitePage = resultSitePage
-      next()
-    })
-})
-
 publicRouter.get('/:sitePageId', (req, res) =>
   Promise.resolve(decorate(req.resultSitePage))
     .then(result => res.send(result))
 )
 
-router.use(publicRouter)
+const findPageById = (req, _, next, value) =>
+  findById(value)
+    .then(resultSitePage => {
+      req.resultSitePage = resultSitePage
+      next()
+    })
 
 router.post('/', validateCreate(), (req, res) => {
   let newItem = {
@@ -49,6 +46,9 @@ router.delete('/:sitePageId', (req, res) => {
   return remove(sitePageId)
     .then(id => res.status(204).send())
 })
+
+publicRouter.param('sitePageId', findPageById)
+router.param('sitePageId', findPageById)
 
 module.exports = {
   router,

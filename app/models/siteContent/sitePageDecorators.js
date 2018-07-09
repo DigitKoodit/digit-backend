@@ -1,6 +1,6 @@
 
 const decorate = sitePage => {
-  const { title, description, published, createdAt, modifiedAt, content } = sitePage.site_page_data
+  const { title, description, published, createdAt, updatedAt, content } = sitePage.site_page_data
 
   return {
     id: sitePage.site_page_id,
@@ -8,7 +8,7 @@ const decorate = sitePage => {
     description,
     published,
     createdAt,
-    modifiedAt,
+    updatedAt,
     content
   }
 }
