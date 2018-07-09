@@ -16,7 +16,7 @@ const LOGIN_COMMON_INACTIVE_USER_MESSAGE = 'Käyttäjää ei ole aktivoitu'
 const authenticateLocal = (req, res, next) => {
   passport.authenticate('local', (err, user, info) => {
     if(err) {
-      next(err)
+      return next(err)
     }
     if(!user) {
       return next(createError(401, info.message, {}))
@@ -52,12 +52,12 @@ const jwtOptions = {
   secretOrKey: process.env.SECRET_KEY
 }
 
-const jwtLogin = new JwtStrategy(jwtOptions, (jwtPayload, done) => {
+const jwtLogin = new JwtStrategy(jwtOptions, (jwtPayload, done) =>
   User.findById(jwtPayload.id)
     .then(user =>
       user ? done(null, user) : done(null, false))
     .catch(error => done(error, false))
-})
+)
 
 passport.use(jwtLogin)
 passport.use(localLogin)
