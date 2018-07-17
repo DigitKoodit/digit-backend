@@ -9,6 +9,7 @@ Vagrant.configure("2") do |config|
   config.vm.network "forwarded_port", guest: 3001, host: 3001
   # open Postgres port
   config.vm.network "forwarded_port", guest: 5432, host: 54321
+  config.vm.network "forwarded_port", guest: 9230, host: 9230
   
   config.vm.provider "virtualbox" do |vb|
    vb.memory = "1024"
