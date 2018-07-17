@@ -1,0 +1,19 @@
+{
+  "window.zoomLevel": 0,
+  "editor.tabSize": 2,
+  "files.hotExit": "onExit",
+  "javascript.format.insertSpaceAfterFunctionKeywordForAnonymousFunctions": false,
+  "javascript.format.insertSpaceAfterKeywordsInControlFlowStatements": false,
+  "eslint.autoFixOnSave": true,
+  "editor.wordWrapColumn": 120,
+  "editor.wordWrap": "bounded",
+  "editor.minimap.enabled": false,
+  "workbench.editor.showTabs": true,
+  "javascript.updateImportsOnFileMove.enabled": "always",
+  "emmet.includeLanguages": {
+      "javascript": "javascriptreact",
+      "vue-html": "html"
+  },
+  "emmet.showExpandedAbbreviation": "inMarkupAndStylesheetFilesOnly",
+  "search.location": "sidebar",
+}
