@@ -11,9 +11,18 @@ Vagrant.configure("2") do |config|
   config.vm.network "forwarded_port", guest: 5432, host: 54321
   config.vm.network "forwarded_port", guest: 9230, host: 9230
   
-  config.vm.provider "virtualbox" do |vb|
-   vb.memory = "1024"
+  config.vm.define :default do |default|
+    default.vm.provider "virtualbox" do |vb|
+      vb.memory = "1024"
+    end
   end
- 
+
+  config.vm.define :wsl, autostart: false do |wsl|
+    wsl.vm.provider "virtualbox" do |vb|
+      vb.memory = "1024"
+      vb.customize [ "modifyvm", :id, "--uartmode1", "disconnected" ]
+    end
+  end
+
   config.vm.provision "shell", path: "vagrant/000-bootstrap.sh"
 end
