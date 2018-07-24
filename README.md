@@ -17,7 +17,7 @@ nvm use
 vagrant up
 ```
 
-Vagrant creates Ubuntu 18 virtual machine and installs postgres and other dependencies required on the project. See `/Vagrantfile`
+Vagrant creates Ubuntu 18 virtual machine and installs postgres and other dependencies required on the project. See [Vagrantfile](./Vagrantfile)
 
 ### Initial Configuration
 
@@ -49,7 +49,26 @@ TODO
 
 ## Contributing
 
-Fork the project and make a pull request.
+> Fork the project -> do changes -> make a pull request.
+
+### 1. Clone your fork:
+
+    git clone git@github.com:YOUR-USERNAME/digit-backend.git
+
+### 2. Add remote from original repository in your forked repository: 
+
+    cd into/cloned/fork-repo
+    git remote add upstream git://github.com/digitkoodit/digit-backend.git
+    git fetch upstream
+
+### 3. Updating your fork from original repo to keep up with their changes:
+
+    git pull upstream master
+
+### 4. Making your own changes
+    git push orign master
+
+### 5. Make a pull request on GitHub 
 
 ## Links
 
@@ -58,4 +77,4 @@ TODO
 
 ## Licensing
 
-"The code in this project is licensed under MIT license."
+"The code in this project is licensed under [MIT license.](/LICENSE)"
