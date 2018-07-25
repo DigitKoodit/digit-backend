@@ -1,7 +1,9 @@
 const decoratePublic = user => ({
   id: user.user_account_id,
   username: user.username,
-  email: user.email
+  email: user.email,
+  active: user.active,
+  roleId: user.user_role_id
 })
 
 const decorate = user => ({
@@ -15,7 +17,7 @@ const decorate = user => ({
 })
 
 const decorateList = users =>
-  users.map(decorate)
+  users.map(decoratePublic)
 
 module.exports = {
   decoratePublic,

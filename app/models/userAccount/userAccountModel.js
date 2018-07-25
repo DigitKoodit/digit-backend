@@ -1,16 +1,16 @@
 const { NotFound } = require('http-errors')
 const { db, pgp } = require('../../../db/pgp')
 
-const User = {}
+const findAll = () => db.any('SELECT * FROM user_account')
 
-User.findOne = ({ id, username }) => {
+const findOne = ({ id, username }) => {
   const whereSql = id ? 'user_account_id = $1' : 'username = $1 OR email = $1'
   const where = pgp.as.format(whereSql, id || username)
   const sql = 'SELECT * FROM user_account WHERE $1:raw'
   return db.one(sql, where)
 }
 
-User.findById = id => {
+const findById = id => {
   if(!id) {
     throw new NotFound('user not found')
   }
@@ -25,7 +25,7 @@ const create = data => {
     active: false
   }
   return db.one(sql, params)
-    .then(result => User.findById(result.user_account_id))
+    .then(result => findById(result.user_account_id))
 }
 
 const update = (data, id) => {
@@ -50,13 +50,19 @@ const update = (data, id) => {
     })
 }
 
-User.save = (data, id) => id ? update(data, id) : create(data)
+const save = (data, id) => id ? update(data, id) : create(data)
 
-User.fetchUserForRegistration = ({ email, username, registrationToken }) => {
+const fetchUserForRegistration = ({ email, username, registrationToken }) => {
   const whereSql = registrationToken ? 'email = $[email] AND registration_token = $[registrationToken]' : '(email = $[email] OR username = $[username]) AND registration_token IS NULL'
   const where = pgp.as.format(whereSql, { email, username, registrationToken })
   const sql = 'SELECT * FROM user_account WHERE $1:raw'
   return db.any(sql, where)
 }
 
-module.exports = User
+module.exports = {
+  findAll,
+  findById,
+  findOne,
+  save,
+  fetchUserForRegistration
+}
