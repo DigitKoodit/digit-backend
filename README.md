@@ -19,14 +19,21 @@ vagrant up
 
 Vagrant creates Ubuntu 18 virtual machine and installs postgres and other dependencies required on the project. See [Vagrantfile](./Vagrantfile)
 
+**NOTE** If using Linux subsystem for Windows instead of `vagrant up` run `vagrant up wsl`. The command starts vagrant with proper configs.
+
 ### Initial Configuration
 
 (Use VScode)
 
 ## Developing
 
-TODO
+Access development environment within Vagrant:
 
+`vagrant ssh default` 
+
+*replace `default` with `wsl` if using Windows Subsystem for Linux*
+
+TODO 
 
 ### Building
 
@@ -66,7 +73,7 @@ TODO
     git pull upstream master
 
 ### 4. Making your own changes
-    git push orign master
+    git push origin master
 
 ### 5. Make a pull request on GitHub 
 
