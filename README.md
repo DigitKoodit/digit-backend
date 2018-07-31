@@ -27,13 +27,26 @@ Vagrant creates Ubuntu 18 virtual machine and installs postgres and other depend
 
 ## Developing
 
-Access development environment within Vagrant:
+Open development environment within Vagrant:
 
 `vagrant ssh default` 
 
-*replace `default` with `wsl` if using Windows Subsystem for Linux*
+*replace `default` with `wsl` if using Windows Subsystem for Linux* 
 
-TODO 
+Project codes are located on `/vagrant` folder which opens automatically after SSH-connection. 
+
+**Shell aliases**
+
+> Following aliases are added to `~/.bashrc` during Vagrant initialization
+
+| Command | Action                      | Notes                                                    |
+| ------- | --------------------------- | -------------------------------------------------------- |
+| st      | pm2 status                  |                                                          |
+| log     | pm2 logs                    |                                                          |
+| rst     | pm2 restart all             |                                                          |
+| rstl    | pm2 restart all \| pm2 logs |                                                          |
+| db      | psql -U digit -h localhost  | Add name of the database after alias e.g. `db digit_dev` |
+
 
 ### Building
 

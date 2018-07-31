@@ -22,3 +22,10 @@ sudo -u vagrant -H NODE_ENV=development node /vagrant/db/migrate-up.js
 sudo -u vagrant -H pm2 start /vagrant/digit_dev.config.js
 sudo -u vagrant -H pm2 save
 env PATH=$PATH:/usr/bin /usr/lib/node_modules/pm2/bin/pm2 startup systemd -u vagrant --hp /home/vagrant
+
+echo "alias log='pm2 logs'" >> /home/vagrant/.bashrc
+echo "alias st='pm2 status'" >> /home/vagrant/.bashrc
+echo "alias rst='pm2 restart all'" >> /home/vagrant/.bashrc
+echo "alias rstl='pm2 restart all | pm2 logs'" >> /home/vagrant/.bashrc
+echo "alias db='psql -U digit -h localhost'" >> /home/vagrant/.bashrc
+echo "cd /vagrant" >> /home/vagrant/.bashrc
