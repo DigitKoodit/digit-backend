@@ -1,6 +1,6 @@
 
 const insertNavitems = {
-  query: 'INSERT INTO nav_item(parent_id, site_page_id, nav_item_data) VALUES($[parentId], $[sitePageId],$[data])',
+  query: 'INSERT INTO nav_item(parent_id, site_page_id, nav_item_data) VALUES($[parentId], $[sitePageId], $[data])',
   values: [{
     parentId: null,
     sitePageId: null,

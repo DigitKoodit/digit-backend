@@ -13,7 +13,7 @@ const localOptions = {}
 const LOGIN_COMMON_ERROR_MESSAGE = 'Käyttäjänimi tai salasana väärin'
 const LOGIN_COMMON_INACTIVE_USER_MESSAGE = 'Käyttäjää ei ole aktivoitu'
 
-const authenticateLocal = (req, res, next) => {
+const authenticateLocal = (req, res, next) =>
   passport.authenticate('local', (err, user, info) => {
     if(err) {
       return next(err)
@@ -26,7 +26,6 @@ const authenticateLocal = (req, res, next) => {
       token: generateToken(user)
     })
   })(req, res, next)
-}
 
 const localLogin = new LocalStrategy(localOptions, (username, password, done) => {
   // TODO: find out does passport validate inputs?
@@ -54,8 +53,13 @@ const jwtOptions = {
 
 const jwtLogin = new JwtStrategy(jwtOptions, (jwtPayload, done) =>
   User.findById(jwtPayload.id)
-    .then(user =>
-      user ? done(null, user) : done(null, false))
+    .then(user => {
+      return Promise.resolve(
+        user
+          ? done(null, user)
+          : done(null, false)
+      )
+    })
     .catch(error => done(error, false))
 )
 

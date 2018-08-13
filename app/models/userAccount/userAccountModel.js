@@ -35,7 +35,8 @@ const update = (data, id) => {
     email = $[email], 
     active = $[active], 
     registration_token = $[registrationToken], 
-    registration_token_valid = $[registrationTokenValid] 
+    registration_token_valid = $[registrationTokenValid],
+    user_role_id = $[roleId] 
   WHERE user_account_id = $[id] RETURNING user_account_id`
   const params = {
     ...data,
@@ -48,6 +49,7 @@ const update = (data, id) => {
       }
       return result.user_account_id
     })
+    .then(findById)
 }
 
 const save = (data, id) => id ? update(data, id) : create(data)

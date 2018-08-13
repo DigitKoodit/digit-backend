@@ -2,7 +2,7 @@ const router = require('express-promise-router')({ mergeParams: true })
 
 const { validateUpdate } = require('../../../models/userAccount/userAccountValidators')
 const { decoratePublic, decorate, decorateList } = require('../../../models/userAccount/userAccountDecorators')
-const { findOne, findAll, save, remove } = require('../../../models/userAccount/userAccountModel')
+const { findById, findAll, save, remove } = require('../../../models/userAccount/userAccountModel')
 
 router.get('/', (req, res) => {
   findAll()
@@ -12,7 +12,7 @@ router.get('/', (req, res) => {
 
 router.put('/:userAccountId', validateUpdate(), (req, res) => {
   const toSave = { ...req.body }
-  const oldItem = decoratePublic(req.resultUserAccount)
+  const oldItem = decorate(req.resultUserAccount)
   return save({ ...oldItem, ...toSave }, req.params.userAccountId)
     .then(decoratePublic)
     .then(result => res.send(result))
@@ -25,7 +25,7 @@ router.delete('/:userAccountId', (req, res) => {
 })
 
 router.param('userAccountId', (req, _, next, value) => {
-  return findOne(value)
+  return findById(value)
     .then(decorate)
     .then(resultUserAccount => {
       req.resultUserAccount = resultUserAccount
