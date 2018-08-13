@@ -25,7 +25,7 @@ const create = ({ sitePageId, parentId, ...data }) => {
 
 const update = ({ id, sitePageId, parentId, ...data }) => {
   const sql = `UPDATE nav_item 
-  SET parent_id = $[parentId], nav_item_data = $[data]
+  SET parent_id = $[parentId], site_page_id = $[sitePageId], nav_item_data = $[data]
   WHERE nav_item_id = $[id] RETURNING nav_item_id`
   const params = {
     id,

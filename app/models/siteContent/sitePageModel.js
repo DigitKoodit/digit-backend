@@ -43,7 +43,6 @@ const update = (data, id) => {
   }
   return db.one(sql, params)
     .then(result => {
-      console.log('res', result)
       if(!result) {
         throw new NotFound('site_page not found')
       }
