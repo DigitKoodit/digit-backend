@@ -22,6 +22,7 @@
     "lodash": "^4.17.10",
     "moment": "^2.22.1",
     "morgan": "^1.9.0",
+    "node-fetch": "^2.2.0",
     "nodemailer": "^4.6.4",
     "passport": "^0.4.0",
     "passport-jwt": "^4.0.0",
@@ -30,7 +31,8 @@
     "pg-monitor": "^1.0.0",
     "pg-promise": "^8.4.4",
     "serve-favicon": "^2.5.0",
-    "umzug": "^2.1.0"
+    "umzug": "^2.1.0",
+    "url-template": "^2.0.8"
   },
   "devDependencies": {
     "eslint": "^4.19.1",

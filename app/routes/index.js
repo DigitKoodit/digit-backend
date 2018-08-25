@@ -8,5 +8,6 @@ router.post('/login', validateLogin(), authenticateLocal)
 router.use('/content', require('./publicSiteContent'))
 router.use('/registration', require('./auth'))
 router.use('/intra', authenticateJwt, require('./intra'))
+router.use('/facebook', require('./socialMedia'))
 
 module.exports = router
