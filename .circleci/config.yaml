@@ -4,9 +4,14 @@ jobs:
     working_directory: ~/tmp
     docker:
       - image: circleci/node:8.11.4
+      - image: circleci/postgres:9.6.2-alpine
+        environment:
+          POSTGRES_USER: root
+          POSTGRES_DB: circle-test_test
     steps: 
       - checkout
       - run: npm install
+      - run: sudo apt install -y postgresql-client || true
       - save_cache: 
         paths:
           - node_modules
