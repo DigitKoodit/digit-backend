@@ -1,10 +1,14 @@
 version: 2
 jobs:
   build:
-    working_directory: ~/digit-backend
+    working_directory: ~/tmp
     docker:
       - image: circleci/node:8.11.4
     steps: 
       - checkout
       - run: npm install
+      - save_cache: 
+        paths:
+          - node_modules
+        key: v1-dependencies-{{ checksum "package.json" }}
       - run: npm test
