@@ -100,6 +100,12 @@ const getStringArrayValidator = name => ({
   }
 })
 
+const getArrayValidator = name => ({
+  in: ['body'],
+  isArray: true,
+  errorMessage: `${name} puuttuu`
+})
+
 const getBooleanValidator = name => ({
   in: ['body'],
   isBoolean: true,
@@ -133,6 +139,7 @@ module.exports = {
   getDecimalValidator,
   getBooleanValidator,
   getStringArrayValidator,
+  getArrayValidator,
   getLowerCaseStringValidator,
   getEmailValidator,
   setIsOptional
