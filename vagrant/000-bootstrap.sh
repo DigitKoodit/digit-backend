@@ -2,11 +2,14 @@
 
 sudo timedatectl set-timezone Europe/Helsinki
 
-curl -sL https://deb.nodesource.com/setup_8.x | bash -
+curl -sL https://deb.nodesource.com/setup_10.x | bash -
 apt-get install -y build-essential nginx postgresql nodejs
 sudo -u postgres psql -c "CREATE USER digit PASSWORD 'digit'"
 sudo -u postgres createdb -O digit digit_dev
 sudo -u postgres createdb -O digit digit_testing
+
+sed -i -e "s/\#listen_addresses = 'localhost'/listen_addresses = '*'/" /etc/postgresql/10/main/postgresql.conf
+echo 'host    all             all             all                     md5' >> /etc/postgresql/10/main/pg_hba.conf
 
 rm /vagrant/migrations/applied_*.json
 
