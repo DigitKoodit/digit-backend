@@ -18,10 +18,11 @@ const findById = id => {
 }
 
 const create = data => {
-  const sql = `INSERT INTO user_account (username, password, email, active, registration_token, registration_token_valid)
-      VALUES ($[username], $[password], $[email], $[active], $[registrationToken], $[registrationTokenValid]) ON CONFLICT DO NOTHING RETURNING user_account_id`
+  const sql = `INSERT INTO user_account (username, password, email, active, registration_token, registration_token_valid, user_role_id)
+      VALUES ($[username], $[password], $[email], $[active], $[registrationToken], $[registrationTokenValid], $[userRoleId] ) ON CONFLICT DO NOTHING RETURNING user_account_id`
   const params = {
     ...data,
+    userRoleId: 3, // TODO: what and when to set user role?
     active: false
   }
   return db.one(sql, params)

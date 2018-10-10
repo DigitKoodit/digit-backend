@@ -12,7 +12,6 @@ const {
 const schema = {
   username: getLowerCaseStringValidator('Käyttäjätunnus', 3),
   password: setIsOptional(getStringValidator('Salasana')), // TODO: password validation min length etc
-  roleId: getIntValidator('Rooli'),
   email: getEmailValidator('Sähköposti')
 }
 
@@ -28,6 +27,7 @@ const validateUpdate = () =>
   getValidator([
     checkSchema({
       ...schema,
+      roleId: getIntValidator('Rooli'),
       active: setIsOptional(getBooleanValidator('Tila'))
     })
   ])
