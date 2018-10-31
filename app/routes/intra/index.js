@@ -7,5 +7,6 @@ router.use('/account', require('./userManagement'))
 router.use('/content', require('./siteContent').router)
 router.use('/sponsor', require('./sponsor').router)
 router.use('/event', require('./event').router)
+router.use('/file', require('./file'))
 
 module.exports = router
