@@ -1,4 +1,5 @@
 const { NotFound } = require('http-errors')
+const { pgp } = require('../../../db/pgp')
 
 const findAll = db => db.any('SELECT * FROM user_account')
 

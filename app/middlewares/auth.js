@@ -8,14 +8,17 @@ const createError = require('http-errors')
 const User = require('../models/userAccount/userAccountModel')
 const { decoratePublic } = require('../models/userAccount/userAccountDecorators')
 
-const localOptions = {}
+const localOptions = {
+  passReqToCallback: true,
+  session: false
+}
 
 const LOGIN_COMMON_ERROR_MESSAGE = 'Käyttäjänimi tai salasana väärin'
 const LOGIN_COMMON_INACTIVE_USER_MESSAGE = 'Käyttäjää ei ole aktivoitu'
 
 const secretKey = process.env.NODE_ENV === 'test'
-? process.env.TEST_SECRET_KEY
-: process.env.SECRET_KEY
+  ? process.env.TEST_SECRET_KEY
+  : process.env.SECRET_KEY
 
 const authenticateLocal = (req, res, next) =>
   passport.authenticate('local', (err, user, info) => {

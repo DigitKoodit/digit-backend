@@ -5,13 +5,13 @@ const { decorate, decorateList } = require('../../../models/userAccount/userRole
 const { findOne, findAll, save, remove } = require('../../../models/userAccount/userRoleModel')
 
 router.get('/', (req, res) => {
-  findAll()
+  findAll(req.db)
     .then(decorateList)
     .then(result => res.send(result))
 })
 
 router.param('userRoleId', (req, _, next, value) => {
-  return findOne(value)
+  return findOne(req.db, value)
     .then(resultUserRole => {
       req.resultUserRole = resultUserRole
       next()
@@ -25,14 +25,14 @@ router.get('/:userRoleId', (req, res) => {
 router.put('/:userRoleId', validateUpdate(), (req, res) => {
   const toSave = { ...req.body }
   const oldItem = decorate(req.resultUserRole)
-  return save({ ...oldItem, ...toSave }, req.params.userRoleId)
+  return save(req.db, { ...oldItem, ...toSave }, req.params.userRoleId)
     .then(decorate)
     .then(result => res.send(result))
 })
 
 router.delete('/:userRoleId', (req, res) => {
   const { userRoleId } = req.params
-  return remove(userRoleId)
+  return remove(req.db, userRoleId)
     .then(id => res.status(204).send())
 })
 

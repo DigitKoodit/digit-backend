@@ -40,7 +40,7 @@ router.post('/', validateRegistrationCreate(), (req, res) => {
         registrationToken,
         registrationTokenValid: moment().add(2, 'days')
       }
-      return save(newUser)
+      return save(req.db, newUser)
     })
     .then(saved => {
       let mailTransporter
@@ -81,7 +81,7 @@ router.put('/', validateRegistrationUpdate(), (req, res) =>
         registrationToken: null,
         registrationTokenValid: null
       }
-      return save(data, userResult.id)
+      return save(req.db, data, userResult.id)
     })
     .then(saved => {
       res.send({ success: true })

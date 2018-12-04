@@ -5,7 +5,7 @@ const { decoratePublic, decorate, decorateList } = require('../../../models/user
 const { findById, findAll, save, remove } = require('../../../models/userAccount/userAccountModel')
 
 router.get('/', (req, res) => {
-  findAll()
+  findAll(req.db)
     .then(decorateList)
     .then(result => res.send(result))
 })
@@ -13,19 +13,19 @@ router.get('/', (req, res) => {
 router.put('/:userAccountId', validateUpdate(), (req, res) => {
   const toSave = { ...req.body }
   const oldItem = decorate(req.resultUserAccount)
-  return save({ ...oldItem, ...toSave }, req.params.userAccountId)
+  return save(req.db, { ...oldItem, ...toSave }, req.params.userAccountId)
     .then(decoratePublic)
     .then(result => res.send(result))
 })
 
 router.delete('/:userAccountId', (req, res) => {
   const { userAccountId } = req.params
-  return remove(userAccountId)
+  return remove(req.db, userAccountId)
     .then(id => res.status(204).send())
 })
 
 router.param('userAccountId', (req, _, next, value) => {
-  return findById(value)
+  return findById(req.db, value)
     .then(decorate)
     .then(resultUserAccount => {
       req.resultUserAccount = resultUserAccount
