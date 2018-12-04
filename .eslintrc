@@ -1,46 +1,47 @@
 {
-  "extends": [
-    "standard"
-  ],
+  "env": {
+    "node": true,
+    "commonjs": true,
+    "jest": true,
+    "es6": true
+  },
+  "extends": "eslint:recommended",
+  "parserOptions": {
+    "ecmaVersion": 2018
+  },
   "rules": {
-    "keyword-spacing": [
+    "indent": [
       "error",
+      2,
       {
-        "after": true,
-        "before": true,
-        "overrides": {
-          "if": {
-            "after": false
-          },
-          "for": {
-            "after": false
-          },
-          "while": {
-            "after": false
-          },
-          "switch": {
-            "after": false
-          },
-          "catch": {
-            "after": false
-          }
-        }
+        "switch-case": 1
       }
     ],
-    "space-before-function-paren": [
+    "linebreak-style": [
+      "error",
+      "unix"
+    ],
+    "quotes": [
+      "error",
+      "single"
+    ],
+    "semi": [
       "error",
       "never"
     ],
-    "generator-star-spacing": [
-      "error",
-      {
-        "before": false,
-        "after": true
-      }
-    ],
+    "eqeqeq": "error",
+    "no-trailing-spaces": "error",
     "object-curly-spacing": [
       "error",
       "always"
-    ]
+    ],
+    "arrow-spacing": [
+      "error",
+      {
+        "before": true,
+        "after": true
+      }
+    ],
+    "no-console": 0
   }
 }
