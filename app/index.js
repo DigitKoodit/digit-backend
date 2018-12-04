@@ -44,6 +44,10 @@ app.use(authMiddlewares)
 
 app.use('/api', routes)
 
+const staticUploadsPath = process.env.NODE_ENV === 'test' ? '/uploads_test' : '/uploads'
+// TODO: handle uplods using Nginx
+app.use(staticUploadsPath, express.static('uploads'))
+
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
   var err = new Error('Not Found')

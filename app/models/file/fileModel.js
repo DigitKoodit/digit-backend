@@ -1,36 +1,42 @@
 const { NotFound } = require('http-errors')
 const moment = require('moment')
-const { db } = require('../../../db/pgp')
 
 const file = {}
 
-file.findById = id => {
+file.findById = (db, id) => {
   if(!id) {
     throw new NotFound('File not found')
   }
   return db.one('SELECT * FROM file WHERE file_id = $1', id)
 }
 
-file.findAll = () => {
+file.findByName = (db, name) =>
+  db.one(`SELECT * FROM file WHERE file_data->>'filename' = $1`, name)
+
+file.findAll = db => {
   return db.any(`SELECT * FROM file`)
 }
 
-file.save = (data, id) => id ? update(data, id) : create(data)
+file.save = (db, data, user, id) => (id
+  ? update(db, data, user, id)
+  : create(db, data, user))
 
-const create = data => {
+file.saveBatch = (db, files, user) => db.tx(t =>
+  t.batch(files.map(file => create(t, file, user))))
+
+const create = (db, data, user) => {
   const dataWithTimestamp = {
     ...data,
-    createdAt: moment().format(),
-    updatedAt: null
+    createdAt: moment().format()
   }
-  const sql = `INSERT INTO file (file_data)
-      VALUES ($[dataWithTimestamp]) RETURNING file_id`
-  const params = { dataWithTimestamp }
+  const sql = `INSERT INTO file (created_by, file_data)
+      VALUES ($[userId], $[dataWithTimestamp]) RETURNING file_id`
+  const params = { dataWithTimestamp, userId: user.user_account_id }
   return db.one(sql, params)
-    .then(result => file.findById(result.file_id))
+    .then(result => file.findById(db, result.file_id))
 }
 
-const update = ({ id, ...data }) => {
+const update = (db, { id, ...data }, user, fileId) => {
   const dataWithTimestamp = {
     ...data,
     updatedAt: moment().format()
@@ -38,21 +44,21 @@ const update = ({ id, ...data }) => {
 
   const sql = `UPDATE file 
   SET file_data = $[dataWithTimestamp]
-  WHERE file_id = $[id] RETURNING file_id`
+  WHERE file_id = $[fileId] RETURNING file_id`
   const params = {
-    id,
+    fileId,
     dataWithTimestamp
   }
   return db.one(sql, params)
-    .then(result => {
-      if(!result) { throw new NotFound('File not found') }
-      return file.findById(result.file_id)
-    })
+    .then(result => file.findById(db, result.file_id))
 }
 
-file.remove = id => {
+file.remove = (db, id) => {
   if(!id) { throw new NotFound('File not found') }
   return db.one('DELETE FROM file WHERE file_id = $1 RETURNING file_id', id)
 }
+
+file.removeAll = db => process.env.NODE_ENV === 'test' &&
+  db.none('TRUNCATE TABLE file RESTART IDENTITY CASCADE')
 
 module.exports = file
