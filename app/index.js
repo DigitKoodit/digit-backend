@@ -57,7 +57,7 @@ app.use(function(req, res, next) {
 
 // error handler
 app.use(function(err, req, res, next) {
-  console.log(err, err.status)
+  console.error(err, err.status)
   res.status(err.status || 500)
   if(err.status === 400 || err.status === 401) {
     res.send({ message: err.message, validationErrors: err.data })

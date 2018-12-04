@@ -2,12 +2,12 @@ const { checkSchema } = require('express-validator/check')
 const { getValidator, getStringValidator, getIntValidator, setIsOptional } = require('../../helpers/validatorHelpers')
 
 const schema = {
-  name: getStringValidator('Nimi'),
   filename: setIsOptional(getStringValidator('Tiedostonimi')),
   path: getStringValidator('Tiedostopolku'),
-  size: setIsOptional(getIntValidator('Tiedostokoko')),
-  createdBy: getIntValidator('Luoja'),
-  createdAt: getIntValidator('Luomispäivä'),
+  size: setIsOptional(getIntValidator('Tiedostokoko'))
+}
+
+const upadateSchema = {
   description: setIsOptional(getStringValidator('Kuvaus'))
 }
 
@@ -18,8 +18,8 @@ const validateCreate = () =>
 
 const validateUpdate = () =>
   getValidator([
-    checkSchema(schema),
     checkSchema({
+      ...upadateSchema,
       fileId: {
         in: ['params'],
         isInt: true,

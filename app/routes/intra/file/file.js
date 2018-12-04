@@ -28,6 +28,7 @@ router.post('/', validateCreate(), (req, res) => {
 router.put('/:fileId', validateUpdate(), (req, res) => {
   const toSave = { ...req.body }
   const oldItem = decorate(req.resultRow)
+
   return save(req.db, { ...oldItem, ...toSave }, req.user, req.params.fileId)
     .then(decorate)
     .then(result => res.send(result))

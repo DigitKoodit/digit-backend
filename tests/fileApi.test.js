@@ -56,16 +56,18 @@ describe('File API', async () => {
     })
 
     describe('file table has values', async () => {
+
       beforeAll(async () => {
         await insertInitialFiles(db)
       })
+
       it('GET /api/intra/files should return status 200 and values', async () => {
         const filesAtStart = await filesInDb(db)
         const response = await api.get('/api/intra/files')
           .set('Authorization', jwtToken)
           .expect(200)
           .expect('Content-Type', /application\/json/)
-        expect(response.body.length).toEqual(filesAtStart.length)
+        expect(response.body.length).toBe(filesAtStart.length)
         expect(response.body).toEqual(expect.arrayContaining(filesAtStart))
       })
 
@@ -73,7 +75,7 @@ describe('File API', async () => {
         afterEach(async () => {
           await clearUploadsTestFolder()
         })
-        // Multiple files can be uploaded simultaneously therefore response.body is array
+        // Multiple files can be uploaded simultaneously therefore response returns created files in an array
         it('POST /api/intra/files/uploads uploads file to uploads_test folder', async () => {
           const filesAtStart = await filesInDb(db)
           const testFilePath = path.join(__dirname, 'assets', 'suomi_talvella.jpg')
@@ -81,12 +83,36 @@ describe('File API', async () => {
             .set('Authorization', jwtToken)
             .attach('uploads', testFilePath)
             .expect(201)
-          const filesAfter = await filesInDb(db)
-          expect(filesAtStart.length + 1).toEqual(filesAfter.length)
-          const newDbEntry = filesAfter[filesAfter.length - 1]
-          expect(response.body).toEqual([newDbEntry])
 
+          const filesAfter = await filesInDb(db)
+          expect(filesAfter.length).toBe(filesAtStart.length + 1)
+          const newDbEntry = filesAfter[filesAfter.length - 1]
+          expect(response.body).toContainEqual(newDbEntry)
         })
+      })
+
+      it('PUT /api/intra/files update file description return 200 and updated value', async () => {
+        const filesAtStart = await filesInDb(db)
+        const updatedFirstFile = {
+          ...filesAtStart[0],
+          description: 'Päivitetyt lisätiedot tiedostolle'
+        }
+        const response = await api.put(`/api/intra/files/${updatedFirstFile.id}`)
+          .send(updatedFirstFile)
+          .set('Authorization', jwtToken)
+          .expect(200)
+        expect(response.body.description).toBe(updatedFirstFile.description)
+      })
+
+      it('DELETE /api/intra/files delete file return 200', async () => {
+        const filesAtStart = await filesInDb(db)
+        const deletedFile = filesAtStart[0]
+        await api.delete(`/api/intra/files/${deletedFile.id}`)
+          .set('Authorization', jwtToken)
+          .expect(204)
+        const filesAfter = await filesInDb(db)
+        expect(filesAfter.length).toBe(filesAtStart.length - 1)
+        expect(filesAfter).not.toContainEqual(deletedFile)
       })
     })
   })

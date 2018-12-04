@@ -17,9 +17,9 @@ file.findAll = db => {
   return db.any(`SELECT * FROM file`)
 }
 
-file.save = (db, data, user, id) => (id
+file.save = (db, data, user, id) => id
   ? update(db, data, user, id)
-  : create(db, data, user))
+  : create(db, data, user)
 
 file.saveBatch = (db, files, user) => db.tx(t =>
   t.batch(files.map(file => create(t, file, user))))
