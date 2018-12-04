@@ -47,6 +47,16 @@ Project codes are located on `/vagrant` folder which opens automatically after S
 | rstl    | pm2 restart all \| pm2 logs |                                                          |
 | db      | psql -U digit -h localhost  | Add name of the database after alias e.g. `db digit_dev` |
 
+### Testing
+
+Ensure `.env` file is present in the project root and contains atleast following keys. These defaults are set on `digit_dev.config.js`
+
+```
+PORT=3001
+TEST_PORT=3031
+```
+
+Test located in `/tests` folder on project root. Run tests with command `npm test`. More cli options available on Jest's [documents](https://jestjs.io/docs/en/cli.html) page
 
 ### Building
 
@@ -54,7 +64,7 @@ TODO
 
 ### Deploying / Publishing
 
-TODO
+TOOD
 
 ## Features
 
@@ -62,6 +72,7 @@ TODO
 * Static Markdown/HTML page content
 * Sponsors
 * Navigation
+* File upload
 
 ## Configuration
 
@@ -92,8 +103,8 @@ TODO
 
 ## Links
 
-TODO
-
+- [Jest](https://jestjs.io/docs/en/getting-started)
+- [create-react-app](https://github.com/facebook/create-react-app)
 
 ## Licensing
 

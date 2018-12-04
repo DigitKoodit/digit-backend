@@ -72,3 +72,7 @@ typings/
 !/.vscode/settings.json
 
 *.swp
+
+# File upload directories
+/uploads
+/uploads_test
