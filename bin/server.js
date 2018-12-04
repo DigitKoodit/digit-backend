@@ -1,46 +1,60 @@
-
-const app = require('../app')
-const normalizePort = val => {
-  const port = parseInt(val, 10)
-  if(isNaN(port)) {
-    return val
-  }
-  if(port >= 0) {
-    return port
-  }
-  return false
+if(process.env.NODE_ENV !== 'production') {
+  require('dotenv').config()
 }
+const http = require('http')
+const app = require('../app')
 
-const port = normalizePort(process.env.PORT || '3001')
+const isTesting = process.env.NODE_ENV === 'test'
+const port = isTesting ? process.env.TEST_PORT : (process.env.PORT || '3001')
 app.set('port', port)
 
 const migrate = require('../db/migrate')
 const { db, pgp } = require('../db/pgp')
 
-migrate.up()
-  .then(() => {
-    app.listen(port, () => `Listening on port ${port}`)
+
+const server = http.createServer(app)
+server.on('close', () => {
+  db.$pool.end()
+})
+
+const startServer = () =>
+  new Promise(resolve => {
+    server.listen(port, () => {
+      console.log(`Server listening port ${port}`)
+      resolve()
+    })
   })
-  .catch(err => {
-    console.error(err)
-    process.exit(1)
-  })
+    .catch(err => {
+      console.error(err)
+      process.exit(1)
+    })
+
+const migrateAndStartServer = () =>
+  migrate.up()
+    .then(() =>
+      new Promise(resolve => {
+        server.listen(port, () => {
+          console.log(`Server listening port ${port}`)
+          resolve()
+        })
+      })
+    )
+    .catch(err => {
+      console.error(err)
+      process.exit(1)
+    })
 
 const gracefulShutdown = () => {
   console.log('Received kill signal, shutting down gracefully.')
-  app.close(() => {
-    console.log('object', pgp)
+  server.close(() => {
+    console.log('SIG PGP OBJECT', pgp)
     db.proc('version')
-      .then(data => {
-        console.log('CONNECTION ACYIVE')
-        // SUCCESS
-        // data.version =
-        // 'PostgreSQL 9.5.1, compiled by Visual C++ build 1800, 64-bit'
+      .then((data) => {
+        console.log('SIG CONNECTION ACTIVE', data)
       })
       .catch(error => {
-        console.log('EREOROR', error)
+        console.log('SIG ERROR', error)
       })
-    console.log('Closed out remaining connections.')
     process.exit(0)
   })
   setTimeout(() => {
@@ -53,3 +67,10 @@ const gracefulShutdown = () => {
 process.on('SIGTERM', gracefulShutdown)
 // TERM signal e.g. ctrl + c
 process.on('SIGINT', gracefulShutdown)
+
+module.exports = {
+  startServer,
+  migrateAndStartServer,
+  app,
+  server
+}
