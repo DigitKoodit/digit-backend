@@ -6,18 +6,14 @@ const monitor = require('pg-monitor')
 const options = {
   promiseLib: Bluebird
 }
-
 const pgp = require('pg-promise')(options)
 
-monitor.attach(options)
-monitor.setTheme('matrix')
-monitor.setLog((msg, info) => {
-  // save the screen messages into your own log file;
-})
+if(process.env.PG_MONITOR) {
+  monitor.attach(options)
+  monitor.setTheme('matrix')
+}
+
 const getDbName = () => {
-  if(process.env.PGDATABASE) {
-    return process.env.PGDATABASE
-  }
   switch(process.env.NODE_ENV) {
     case 'test':
       return 'digit_testing'
@@ -28,6 +24,9 @@ const getDbName = () => {
     case 'development':
       return 'digit_dev'
     default:
+      if(process.env.PGDATABASE) {
+        return process.env.PGDATABASE
+      }
       throw new Error('INVALID ENVIRONMENT, cannot determine database name')
   }
 }
@@ -78,7 +77,7 @@ const getMigrationEngine = () => {
           path: process.cwd() + '/migrations/applied_' + getDbName() + '.json'
         },
         migrations: {
-          params: [applyInTransaction, client]
+          params: [applyInTransaction]
         }
       })
       return [umzug, client]

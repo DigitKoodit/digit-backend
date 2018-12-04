@@ -5,13 +5,17 @@ const JwtStrategy = require('passport-jwt').Strategy
 const LocalStrategy = require('passport-local').Strategy
 const ExtractJwt = require('passport-jwt').ExtractJwt
 const createError = require('http-errors')
-const User = require('./models/userAccount/userAccountModel')
-const { decoratePublic } = require('./models/userAccount/userAccountDecorators')
+const User = require('../models/userAccount/userAccountModel')
+const { decoratePublic } = require('../models/userAccount/userAccountDecorators')
 
 const localOptions = {}
 
 const LOGIN_COMMON_ERROR_MESSAGE = 'Käyttäjänimi tai salasana väärin'
 const LOGIN_COMMON_INACTIVE_USER_MESSAGE = 'Käyttäjää ei ole aktivoitu'
+
+const secretKey = process.env.NODE_ENV === 'test'
+? process.env.TEST_SECRET_KEY
+: process.env.SECRET_KEY
 
 const authenticateLocal = (req, res, next) =>
   passport.authenticate('local', (err, user, info) => {
@@ -27,9 +31,9 @@ const authenticateLocal = (req, res, next) =>
     })
   })(req, res, next)
 
-const localLogin = new LocalStrategy(localOptions, (username, password, done) => {
+const localLogin = new LocalStrategy(localOptions, (req, username, password, done) => {
   // TODO: find out does passport validate inputs?
-  return User.findOne({ username })
+  return User.findOne(req.db, { username })
     .then(user => {
       // If token exists the user hasn't been confirmed yet
       if(user.registration_token) {
@@ -48,11 +52,12 @@ const localLogin = new LocalStrategy(localOptions, (username, password, done) =>
 
 const jwtOptions = {
   jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
-  secretOrKey: process.env.SECRET_KEY
+  secretOrKey: secretKey,
+  passReqToCallback: true
 }
 
-const jwtLogin = new JwtStrategy(jwtOptions, (jwtPayload, done) =>
-  User.findById(jwtPayload.id)
+const jwtLogin = new JwtStrategy(jwtOptions, (req, jwtPayload, done) =>
+  User.findById(req.db, jwtPayload.id)
     .then(user => {
       return Promise.resolve(
         user
@@ -67,7 +72,7 @@ passport.use(jwtLogin)
 passport.use(localLogin)
 
 const generateToken = user => {
-  return jwt.sign({ ...user }, process.env.SECRET_KEY, {
+  return jwt.sign({ ...user }, secretKey, {
     expiresIn: '1d'
   })
 }

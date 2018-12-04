@@ -4,10 +4,13 @@ const path = require('path')
 const favicon = require('serve-favicon')
 const logger = require('morgan')
 const bodyParser = require('body-parser')
+const moment = require('moment')
 
 const routes = require('./routes')
-const { authMiddlewares } = require('./auth')
+const { authMiddlewares } = require('./middlewares/auth')
+const databaseMiddlewares = require('./middlewares/database')
 
+moment.locale('fi')
 const app = express()
 
 logger.token('statuscolor', (req, res) => {
@@ -36,8 +39,8 @@ if(process.env.NODE_ENV !== 'test') {
 
 app.use(bodyParser.json())
 app.use(bodyParser.urlencoded({ extended: false }))
+app.use(databaseMiddlewares)
 app.use(authMiddlewares)
-app.use(express.static(path.join(__dirname, 'public')))
 
 app.use('/api', routes)
 
