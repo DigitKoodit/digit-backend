@@ -26,7 +26,6 @@ logger.token('statuscolor', (req, res) => {
 app.enable('trust proxy') // FIXME: is this neccessary?
 
 app.use(favicon(path.join(__dirname, 'public', 'favicon.ico')))
-
 if(process.env.NODE_ENV !== 'test') {
   let loggerOutputFormat = ''
   if(process.env.NODE_ENV === 'development') {

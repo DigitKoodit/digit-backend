@@ -11,7 +11,6 @@ app.set('port', port)
 const migrate = require('../db/migrate')
 const { db, pgp } = require('../db/pgp')
 
-
 const server = http.createServer(app)
 server.on('close', () => {
   db.$pool.end()
