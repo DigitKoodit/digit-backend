@@ -12,7 +12,7 @@ event.findById = id => {
 }
 event.findAll = activeOnly => {
   return db.any(`SELECT * FROM event ${!isNil(activeOnly)
-    ? `WHERE (event_data->>'activeAt')::timestamp < $[currentTime] AND (event_data->>'activeUntil')::timestamp > $[currentTime] AND (event_data->>'isVisible')::boolean IS TRUE`
+    ? `WHERE (event_data->>'activeUntil')::timestamp > $[currentTime] AND (event_data->>'isVisible')::boolean IS TRUE`
     : ''}`,
   { currentTime: moment().format() })
 }
