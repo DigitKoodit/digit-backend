@@ -2,7 +2,17 @@ const { checkSchema } = require('express-validator/check')
 const { getValidator, getStringValidator, getBooleanValidator, getIntValidator, setIsOptional } = require('../../helpers/validatorHelpers')
 
 const schema = {
-  path: getStringValidator('URL'),
+  path: {
+    ...getStringValidator('URL'),
+    customSanitizer: {
+      options: value => {
+        const noSpaceValue = value.replace(/ /g, '-')
+        return noSpaceValue.charAt(0) !== '/'
+          ? '/' + noSpaceValue
+          : noSpaceValue
+      }
+    }
+  },
   title: getStringValidator('Nimi'),
   isCustom: getBooleanValidator('Komponenttitieto'),
   parentId: setIsOptional(getIntValidator('Parent')),
