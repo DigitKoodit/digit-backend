@@ -11,7 +11,7 @@ navItem.findById = id => {
   return db.one('SELECT * FROM nav_item WHERE nav_item_id = $1', id)
 }
 
-navItem.findAll = isVisible => db.any(`SELECT * FROM nav_item ${!isNil(isVisible) ? `WHERE (nav_item_data->>'isVisible')::boolean = true` : ''}`)
+navItem.findAll = isPublished => db.any(`SELECT * FROM nav_item ${!isNil(isPublished) ? `WHERE (nav_item_data->>'isPublished')::boolean = true` : ''}`)
 
 navItem.save = (data, id) => id ? update(data, id) : create(data)
 

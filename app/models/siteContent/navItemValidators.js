@@ -18,7 +18,8 @@ const schema = {
   parentId: setIsOptional(getIntValidator('Parent')),
   sitePageId: setIsOptional(getIntValidator('Sisältötunniste')),
   weight: getIntValidator('Paino'),
-  isVisible: getBooleanValidator('Näkyvyys')
+  showOnNavigation: getBooleanValidator('Näkyvyys'),
+  isPublished: getBooleanValidator('Julkaistu')
 }
 
 const validateCreate = () =>
