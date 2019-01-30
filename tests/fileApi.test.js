@@ -1,13 +1,11 @@
 const supertest = require('supertest')
 const path = require('path')
-const { startServer, migrateAndStartServer, app, server } = require('../bin/server')
-const { db, pgp } = require('../db/pgp')
+const { startServer, app, server } = require('../bin/server')
+const { db } = require('../db/pgp')
 
-const UserAccount = require('../app/models/userAccount/userAccountModel')
 const UserAccountRole = require('../app/models/userAccount/userRoleModel')
 const { generateJwtToken, insertDefaultRolesAndAdmin } = require('./userAccountHelpers')
-const File = require('../app/models/file/fileModel')
-const { insertInitialFiles, filesInDb, clearUploadsTestFolder } = require('./fileHelpers')
+const { insertInitialFiles, filesInDb, removeAllFromDb, clearUploadsTestFolder } = require('./fileHelpers')
 
 let api
 let jwtToken
@@ -33,7 +31,7 @@ afterAll(() => {
 
 describe('File API', async () => {
   beforeAll(async () => {
-    await File.removeAll(db)
+    await removeAllFromDb(db)
   })
 
   describe('user is not authenticated', async () => {
@@ -104,7 +102,7 @@ describe('File API', async () => {
         expect(response.body.description).toBe(updatedFirstFile.description)
       })
 
-      it('DELETE /api/intra/files delete file return 200', async () => {
+      it('DELETE /api/intra/files delete file return 204', async () => {
         const filesAtStart = await filesInDb(db)
         const deletedFile = filesAtStart[0]
         await api.delete(`/api/intra/files/${deletedFile.id}`)

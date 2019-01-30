@@ -46,9 +46,12 @@ const clearUploadsTestFolder = () =>
     rimraf(uploadFolder, resolve)
   })
 
+const removeAllFromDb = db => db.none('TRUNCATE TABLE file RESTART IDENTITY CASCADE')
+
 module.exports = {
   initialFiles,
   filesInDb,
   insertInitialFiles,
+  removeAllFromDb,
   clearUploadsTestFolder
 }

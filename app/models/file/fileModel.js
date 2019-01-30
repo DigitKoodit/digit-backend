@@ -58,7 +58,4 @@ file.remove = (db, id) => {
   return db.one('DELETE FROM file WHERE file_id = $1 RETURNING file_id', id)
 }
 
-file.removeAll = db => process.env.NODE_ENV === 'test' &&
-  db.none('TRUNCATE TABLE file RESTART IDENTITY CASCADE')
-
 module.exports = file
