@@ -1,36 +1,36 @@
 const { NotFound } = require('http-errors')
 const moment = require('moment')
 const isNil = require('lodash/isNil')
-const { db } = require('../../../db/pgp')
 
 const event = {}
-event.findById = id => {
+event.findById = (db, id) => {
   if(!id) {
     throw new NotFound('Event not found')
   }
   return db.one('SELECT * FROM event WHERE event_id = $1', id)
 }
-event.findAll = activeOnly => {
+event.findAll = (db, activeOnly) => {
   return db.any(`SELECT * FROM event ${!isNil(activeOnly)
     ? `WHERE (event_data->>'activeUntil')::timestamp > $[currentTime] AND (event_data->>'isVisible')::boolean IS TRUE`
     : ''}`,
   { currentTime: moment().format() })
 }
 
-event.save = (data, id) => id ? update(data, id) : create(data)
+event.save = (db, data, id) => id ? update(db, data, id) : create(db, data)
 
-const create = data => {
+const create = (db, data) => {
   const sql = `INSERT INTO event (event_data)
       VALUES ($[data]) RETURNING event_id`
+      
   const params = { data }
   return db.one(sql, params)
-    .then(result => event.findById(result.event_id))
+    .then(result => event.findById(db, result.event_id))
 }
 
-const update = ({ id, ...data }) => {
+const update = (db, { id, ...data }) => {
   const sql = `UPDATE event 
-  SET event_data = $[data]
-  WHERE event_id = $[id] RETURNING event_id`
+    SET event_data = $[data]
+    WHERE event_id = $[id] RETURNING event_id`
   const params = {
     id,
     data
@@ -38,11 +38,11 @@ const update = ({ id, ...data }) => {
   return db.one(sql, params)
     .then(result => {
       if(!result) { throw new NotFound('Event not found') }
-      return event.findById(result.event_id)
+      return event.findById(db, result.event_id)
     })
 }
 
-event.remove = id => {
+event.remove = (db, id) => {
   if(!id) { throw new NotFound('Event not found') }
   return db.one('DELETE FROM event WHERE event_id = $1 RETURNING event_id', id)
 }

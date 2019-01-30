@@ -1,26 +1,24 @@
 const decoratePublic = event => {
   const { event_id: id } = event
-  const { name, description, fields, participants, maxParticipants, reserveCount } = event.event_data
+  const { name, description, fields, maxParticipants, reserveCount } = event.event_data
   return {
     id,
     name,
     fields,
     description,
     maxParticipants,
-    participants,
     reserveCount
   }
 }
 
 const decorate = event => {
   const { event_id: id } = event
-  const { name, description, fields, participants, activeAt, activeUntil, isVisible, maxParticipants, reserveCount } = event.event_data
+  const { name, description, fields, activeAt, activeUntil, isVisible, maxParticipants, reserveCount } = event.event_data
   return {
     id,
     name,
     fields,
     description,
-    participants,
     isVisible,
     activeAt,
     activeUntil,

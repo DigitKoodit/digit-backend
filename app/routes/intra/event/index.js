@@ -5,22 +5,26 @@ const { decorate, decorateList } = require('../../../models/event/eventDecorator
 const { findById, findAll, save, remove } = require('../../../models/event/eventModel')
 
 router.get('/', (req, res) =>
-  findAll()
+  findAll(req.db)
     .then(decorateList)
     .then(result => res.send(result)))
 
 const findEventById = (req, _, next, value) =>
-  findById(value)
+  findById(req.db, value)
     .then(resultRow => {
       req.resultRow = resultRow
       next()
     })
 
+const logBody = (msg = '') => (req, res, next) => {
+  console.log(msg, JSON.stringify(req.body, null, 4))
+  next()
+}
 router.post('/', validateCreate(), (req, res) => {
   let newItem = {
     ...req.body
   }
-  return save(newItem)
+  return save(req.db, newItem)
     .then(decorate)
     .then(result => res.status(201).send(result))
 })
@@ -28,30 +32,32 @@ router.post('/', validateCreate(), (req, res) => {
 router.put('/:eventId', validateUpdate(), (req, res) => {
   const toSave = { ...req.body }
   const oldItem = decorate(req.resultRow)
-  return save({ ...oldItem, ...toSave }, req.params.eventId)
+  return save(req.db, { ...oldItem, ...toSave }, req.params.eventId)
     .then(decorate)
     .then(result => res.send(result))
 })
 
 router.delete('/:eventId', (req, res) => {
   const { eventId } = req.params
-  return remove(eventId)
+  return remove(req.db, eventId)
     .then(id => res.status(204).send())
 })
 
 router.param('eventId', findEventById)
 
 publicRouter.get('/', (req, res) =>
-  findAll(true)
+  findAll(req.db, true)
     .then(decorateList)
     .then(result => res.send(result)))
 
 publicRouter.get('/:eventId', (req, res) =>
-  Promise.resolve(decorate(req.resultRow))
-    .then(result => res.send(result))
-)
+  res.send(decorate(req.resultRow)))
 
 publicRouter.param('eventId', findEventById)
+
+router.use('/:eventId/enrolls', require('./enroll').router)
+publicRouter.use('/:eventId/enrolls', require('./enroll').publicRouter)
+
 
 module.exports = {
   router,
