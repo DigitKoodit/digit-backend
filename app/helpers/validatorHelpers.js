@@ -4,19 +4,20 @@ const { pick, keys } = require('lodash')
 const createError = require('http-errors')
 
 const checkValidationResult = (req, res, next) => {
-  req._validationErrors = req._validationErrors.filter(error => {
-    const context = req._validationContexts.find(context => {
-      return context.locations.includes(error.location) &&
-        context.fields.length === 1 &&
-        context.fields.includes(error.param) &&
-        context.optional &&
-        context.optional.canBeNull // custom flag to indicate null is ok
-    })
-    if(context) {
-      return error.value !== null
-    }
-    return true
-  })
+  // req._validationErrors = req._validationErrors.filter(error => {
+  //   const context = req._validationContexts.find(context => {
+  //     console.log(JSON.stringify(context, null, 4), error)
+  //     return context.locations.includes(error.location) &&
+  //       context.fields.length === 1 &&
+  //       context.fields.includes(error.param) &&
+  //       context.optional &&
+  //       context.optional.canBeNull // custom flag to indicate null is ok
+  //   })
+  //   if(context) {
+  //     return error.value !== null
+  //   }
+  //   return true
+  // })
   const result = validationResult(req)
   if(result.isEmpty()) {
     return next()
@@ -124,7 +125,7 @@ const setIsOptional = validator => ({
   ...validator,
   optional: {
     options: {
-      canBeNull: true
+      nullable: true
     }
   }
 })
