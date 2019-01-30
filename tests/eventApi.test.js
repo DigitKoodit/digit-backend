@@ -28,7 +28,7 @@ afterAll(() => {
   server.close()
 })
 
-describe('Enroll API', async () => {
+describe('Event API', async () => {
   beforeAll(async () => {
     // Truncates event table which removes enrolls too
     await removeAllFromDb(db)
