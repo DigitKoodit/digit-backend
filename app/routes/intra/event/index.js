@@ -1,25 +1,21 @@
 const router = require('express-promise-router')({ mergeParams: true })
 const publicRouter = require('express-promise-router')({ mergeParams: true })
+
 const { validateCreate, validateUpdate } = require('../../../models/event/eventValidators')
 const { decorate, decorateList } = require('../../../models/event/eventDecorators')
 const { findById, findAll, save, remove } = require('../../../models/event/eventModel')
+const { findByIdToResultRow } = require('../../../helpers/helpers')
 
 router.get('/', (req, res) =>
   findAll(req.db)
     .then(decorateList)
     .then(result => res.send(result)))
 
-const findEventById = (req, _, next, value) =>
-  findById(req.db, value)
-    .then(resultRow => {
-      req.resultRow = resultRow
-      next()
-    })
 
-const logBody = (msg = '') => (req, res, next) => {
-  console.log(msg, JSON.stringify(req.body, null, 4))
-  next()
-}
+router.get('/:eventId', (req, res) =>
+  res.send(decorate(req.resultRow)))
+
+
 router.post('/', validateCreate(), (req, res) => {
   let newItem = {
     ...req.body
@@ -42,6 +38,8 @@ router.delete('/:eventId', (req, res) => {
   return remove(req.db, eventId)
     .then(id => res.status(204).send())
 })
+
+const findEventById = findByIdToResultRow('Event', 'eventId', findById)
 
 router.param('eventId', findEventById)
 

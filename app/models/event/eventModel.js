@@ -8,12 +8,15 @@ event.findById = (db, id) => {
     throw new NotFound('Event not found')
   }
   return db.one('SELECT * FROM event WHERE event_id = $1', id)
+    .catch(error => {
+      throw new NotFound('Event not found', error)
+    })
 }
 event.findAll = (db, activeOnly) => {
   return db.any(`SELECT * FROM event ${!isNil(activeOnly)
     ? `WHERE (event_data->>'activeUntil')::timestamp > $[currentTime] AND (event_data->>'isVisible')::boolean IS TRUE`
     : ''}`,
-  { currentTime: moment().format() })
+    { currentTime: moment().format() })
 }
 
 event.save = (db, data, id) => id ? update(db, data, id) : create(db, data)
@@ -21,7 +24,7 @@ event.save = (db, data, id) => id ? update(db, data, id) : create(db, data)
 const create = (db, data) => {
   const sql = `INSERT INTO event (event_data)
       VALUES ($[data]) RETURNING event_id`
-      
+
   const params = { data }
   return db.one(sql, params)
     .then(result => event.findById(db, result.event_id))

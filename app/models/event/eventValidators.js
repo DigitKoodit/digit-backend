@@ -14,6 +14,14 @@ const selectableFieldSchema = {
   'fields.*.options.*.reserveCount': setIsOptional(getIntValidator('Vaihtoehdon kiintiö'))
 }
 
+const idSchema = {
+  eventId: {
+    in: ['params'],
+    isInt: true,
+    toInt: true
+  }
+}
+
 const schema = {
   name: getStringValidator('Nimi'),
   description: setIsOptional(getStringValidator('Kuvaus')),
@@ -37,15 +45,8 @@ const schema = {
 
 const updateSchema = {
   ...schema,
-  eventId: {
-    in: ['params'],
-    isInt: true,
-    toInt: true
-  }
+  ...idSchema
 }
-
-
-
 
 const validateCreate = () =>
   getValidator([

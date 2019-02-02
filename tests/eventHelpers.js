@@ -5,8 +5,8 @@ const initialEvents = [
     event_id: 1,
     event_data: {
       name: 'Event name',
-      activeAt: '2019-01-22T12:00:00+02:00',
-      activeUntil: '2019-02-22T12:00:00+02:00',
+      activeAt: '2019-01-01T12:00:00+02:00',
+      activeUntil: '2019-02-01T12:00:00+02:00',
       isVisible: true,
       maxParticipants: null,
       reserveCount: 0,
@@ -40,11 +40,38 @@ const initialEvents = [
         }
       ]
     }
+  },
+  {
+    event_id: 2,
+    event_data: {
+      name: 'Second event name',
+      activeAt: '2019-01-01T12:00:00+02:00',
+      activeUntil: '2019-02-01T12:00:00+02:00',
+      isVisible: true,
+      maxParticipants: null,
+      reserveCount: 0,
+      description: `Second event description`,
+      fields: [
+        {
+          id: 0,
+          name: 'etunimi',
+          label: 'Etunimi',
+          type: 'text',
+          placeholder: null,
+          maxLength: 64,
+          isTextarea: false,
+          fieldName: 'Teksti',
+          required: true,
+          public: true,
+          order: 0
+        }
+      ]
+    }
   }
 ]
 
 const eventsInDb = db =>
-  db.any('SELECT * FROM event')
+  db.any('SELECT * FROM event ORDER BY event_id')
     .then(decorateList)
 
 const insertInitialEvents = db =>

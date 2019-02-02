@@ -5,23 +5,20 @@ const { db } = require('../db/pgp')
 const UserAccountRole = require('../app/models/userAccount/userRoleModel')
 const { generateJwtToken, insertDefaultRolesAndAdmin } = require('./userAccountHelpers')
 const { insertInitialEvents, eventsInDb, removeAllFromDb } = require('./eventHelpers')
-
+const { responseCommon404 } = require('./testHelpers')
 let api
 let jwtToken
+const response404 = { message: 'Event not found' }
+const responseInvalidEventId = { message: 'Event id must be integer' }
 
-beforeAll(() => {
-  //   return migrateAndStartServer() // Switch with startServer if new migrations available
-  // TODO: run migrations automatically if not up to date
-  return startServer()
-    .then(() => {
-      api = supertest(app)
-      return UserAccountRole.removeAll(db)
-        .then(() => insertDefaultRolesAndAdmin(db))
-    })
-    .then(generateJwtToken)
-    .then(token => {
-      jwtToken = `Bearer ${token}`
-    })
+
+beforeAll(async () => {
+  await startServer()
+  api = supertest(app)
+  await UserAccountRole.removeAll(db)
+  const user = await insertDefaultRolesAndAdmin(db)
+  const token = await generateJwtToken(user)
+  jwtToken = `Bearer ${token}`
 })
 
 afterAll(() => {
@@ -34,16 +31,37 @@ describe('Event API', async () => {
     await removeAllFromDb(db)
   })
 
-  describe('user is not authenticated', async () => {
-    it('GET /api/intra/events should return status 401', async () => {
+  describe('Invalid request params', async () => {
+    test('GET /api/contents/events/:invalidEventId should return status 400', async () => {
+      const invalidEventId = 'INVALID_ID'
+      const response = await api.get(`/api/contents/events/${invalidEventId}`)
+        .expect(400)
+      expect(response.body).toEqual(responseInvalidEventId)
+    })
+  })
+
+
+  describe('User is not authenticated', async () => {
+    test('GET /api/intra/events should return status 401', async () => {
       return api.get('/api/intra/events')
         .expect(401)
     })
   })
 
-  describe('user is authenticated', async () => {
-    describe('event table is empty', async () => {
-      it('GET /api/intra/events should return status 200 and empty array', async () => {
+  describe('User is authenticated', async () => {
+
+    describe('Authorized but invalid request params', async () => {
+      test('GET /api/intra/events/:invalidEventId should return status 400', async () => {
+        const invalidEventId = 'INVALID_ID'
+        const response = await api.get(`/api/intra/events/${invalidEventId}`)
+          .set('Authorization', jwtToken)
+          .expect(400)
+        expect(response.body).toEqual(responseInvalidEventId)
+      })
+    })
+
+    describe('Table event is empty', async () => {
+      test('GET /api/intra/events should return status 200 and empty array', async () => {
         const response = await api.get('/api/intra/events')
           .set('Authorization', jwtToken)
           .expect(200)
@@ -53,13 +71,13 @@ describe('Event API', async () => {
       })
     })
 
-    describe('event table has values', async () => {
+    describe('Table event has values', async () => {
       beforeEach(async () => {
         await removeAllFromDb(db)
         await insertInitialEvents(db)
       })
 
-      it('GET /api/intra/events should return status 200 and values', async () => {
+      test('GET /api/intra/events should return status 200 and values', async () => {
         const eventsAtStart = await eventsInDb(db)
         const response = await api.get('/api/intra/events')
           .set('Authorization', jwtToken)
@@ -69,11 +87,11 @@ describe('Event API', async () => {
         expect(response.body).toEqual(expect.arrayContaining(eventsAtStart))
       })
 
-      describe('event manipulation', async () => {
-        it('POST /api/intra/events creates new event', async () => {
+      describe('Event manipulation', async () => {
+        test('POST /api/intra/events creates new event', async () => {
           const eventsAtStart = await eventsInDb(db)
           const newEvent = {
-            name: 'Event 2',
+            name: 'New event',
             description: 'Fancy description',
             fields: [
               {
@@ -116,10 +134,11 @@ describe('Event API', async () => {
           expect(response.body).toEqual(newDbEntry)
 
         })
-        it('PUT /api/intra/events updates existing event', async () => {
+        test('PUT /api/intra/events updates existing event', async () => {
           const eventsAtStart = await eventsInDb(db)
+          const updatedEntryIndex = 0
           const updatedFirstEvent = {
-            ...eventsAtStart[0],
+            ...eventsAtStart[updatedEntryIndex],
             fields: [
               {
                 id: 0,
@@ -169,12 +188,12 @@ describe('Event API', async () => {
 
           const eventsAfter = await eventsInDb(db)
           expect(eventsAfter.length).toBe(eventsAtStart.length)
-          const updatedEntry = eventsAfter[eventsAfter.length - 1]
+          const updatedEntry = eventsAfter[updatedEntryIndex]
 
           expect(response.body).toEqual(updatedEntry)
         })
-        
-        it('DELETE /api/intra/events delete event return 204', async () => {
+
+        test('DELETE /api/intra/events delete event return 204', async () => {
           const eventsAtStart = await eventsInDb(db)
           const deletedEvent = eventsAtStart[0]
           await api.delete(`/api/intra/events/${deletedEvent.id}`)
