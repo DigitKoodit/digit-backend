@@ -1,5 +1,5 @@
 const { checkSchema } = require('express-validator/check')
-const { getValidator, getArrayValidator } = require('../../helpers/validatorHelpers')
+const { getValidator, getStringValidator } = require('../../helpers/validatorHelpers')
 
 const schema = {
   eventId: {
@@ -7,21 +7,8 @@ const schema = {
     isInt: true,
     toInt: true
   },
-  values: {
-    in: ['body']
-  }
+  'values.*': getStringValidator('Valinnat')
 }
-
-const validateGet = () =>
-  getValidator([
-    checkSchema({
-      eventId: {
-        in: ['params'],
-        isInt: true,
-        toInt: true
-      }
-    })
-  ])
 
 const validateCreate = () =>
   getValidator([
@@ -32,6 +19,5 @@ const validateUpdate = validateCreate
 
 module.exports = {
   validateCreate,
-  validateUpdate,
-  validateGet
+  validateUpdate
 }
