@@ -5,10 +5,8 @@ const { db } = require('../db/pgp')
 const UserAccountRole = require('../app/models/userAccount/userRoleModel')
 const { generateJwtToken, insertDefaultRolesAndAdmin } = require('./userAccountHelpers')
 const { insertInitialEvents, eventsInDb, removeAllFromDb } = require('./eventHelpers')
-const { responseCommon404 } = require('./testHelpers')
 let api
 let jwtToken
-const response404 = { message: 'Event not found' }
 const responseInvalidEventId = { message: 'Event id must be integer' }
 
 
