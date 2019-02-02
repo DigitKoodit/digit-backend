@@ -48,15 +48,15 @@ const staticUploadsPath = process.env.NODE_ENV === 'test' ? '/uploads_test' : '/
 app.use(staticUploadsPath, express.static('uploads'))
 
 // catch 404 and forward to error handler
-app.use(function(req, res, next) {
+app.use((req, res, next) => {
   var err = new Error('Not Found')
   err.status = 404
   next(err)
 })
 
 // error handler
-app.use(function(err, req, res, next) {
-  console.error(err, err.status)
+app.use((err, req, res, next) => {
+  // console.error(JSON.stringify(err, null, 4), err.status)
   res.status(err.status || 500)
   if(err.status === 400 || err.status === 401) {
     res.send({ message: err.message, validationErrors: err.data })
