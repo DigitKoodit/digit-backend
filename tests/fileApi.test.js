@@ -1,26 +1,19 @@
-const supertest = require('supertest')
-const path = require('path')
-const { startServer, app, server } = require('../bin/server')
 const { db } = require('../db/pgp')
+const { initializeApi, closeApi, getJwtToken } = require('./testHelpers')
+const path = require('path')
 
-const UserAccountRole = require('../app/models/userAccount/userRoleModel')
-const { generateJwtToken, insertDefaultRolesAndAdmin } = require('./userAccountHelpers')
 const { insertInitialFiles, filesInDb, removeAllFromDb, clearUploadsTestFolder } = require('./fileHelpers')
 
 let api
 let jwtToken
 
 beforeAll(async () => {
-  await startServer()
-  api = supertest(app)
-  await UserAccountRole.removeAll(db)
-  const user = await insertDefaultRolesAndAdmin(db)
-  const token = await generateJwtToken(user)
-  jwtToken = `Bearer ${token}`
+  api = await initializeApi()
+  jwtToken = await getJwtToken(db)
 })
 
 afterAll(() => {
-  server.close()
+  closeApi()
 })
 
 describe('File API', async () => {

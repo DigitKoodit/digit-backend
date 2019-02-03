@@ -1,9 +1,6 @@
-const supertest = require('supertest')
-const { startServer, app, server } = require('../bin/server')
-const { db } = require('../db/pgp')
 
-const UserAccountRole = require('../app/models/userAccount/userRoleModel')
-const { generateJwtToken, insertDefaultRolesAndAdmin } = require('./userAccountHelpers')
+const { db } = require('../db/pgp')
+const { initializeApi, closeApi, getJwtToken } = require('./testHelpers')
 const { insertInitialEvents, eventsInDb, removeAllFromDb } = require('./eventHelpers')
 let api
 let jwtToken
@@ -11,16 +8,12 @@ const responseInvalidEventId = { message: 'Event id must be integer' }
 
 
 beforeAll(async () => {
-  await startServer()
-  api = supertest(app)
-  await UserAccountRole.removeAll(db)
-  const user = await insertDefaultRolesAndAdmin(db)
-  const token = await generateJwtToken(user)
-  jwtToken = `Bearer ${token}`
+  api = await initializeApi()
+  jwtToken = await getJwtToken(db)
 })
 
 afterAll(() => {
-  server.close()
+  closeApi()
 })
 
 describe('Event API', async () => {

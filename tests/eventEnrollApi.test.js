@@ -4,9 +4,8 @@ const supertest = require('supertest')
 const lolex = require('lolex')
 const { startServer, app, server } = require('../bin/server')
 const { db } = require('../db/pgp')
+const { initializeApi, closeApi, getJwtToken } = require('./testHelpers')
 
-const UserAccountRole = require('../app/models/userAccount/userRoleModel')
-const { generateJwtToken, insertDefaultRolesAndAdmin } = require('./userAccountHelpers')
 const { insertInitialEventEnrolls, eventEnrollsInDb, eventEnrollsInDbByEvent, removeAllFromDb } = require('./eventEnrollHelpers')
 const { insertInitialEvents, removeAllFromDb: removeAllEventsFromDb } = require('./eventHelpers')
 
@@ -15,16 +14,10 @@ let jwtToken
 let eventId = 1
 let responseInvalidEnrollId = { message: 'Event enroll id must be integer' }
 
-beforeAll(async () => {
-  //   return migrateAndStartServer() // Switch with startServer if new migrations available
-  // TODO: run migrations automatically if not up to date
-  await startServer()
-  api = supertest(app)
-  await UserAccountRole.removeAll(db)
-  const user = await insertDefaultRolesAndAdmin(db)
-  const token = await generateJwtToken(user)
-  jwtToken = `Bearer ${token}`
 
+beforeAll(async () => {
+  api = await initializeApi()
+  jwtToken = await getJwtToken(db)
 
   fakeClock = lolex.install({
     now: new Date('2019-01-31T12:00:00+02:00'), // Set fixed time before event closes and enrolls have occured
@@ -33,7 +26,7 @@ beforeAll(async () => {
 })
 
 afterAll(() => {
-  server.close()
+  closeApi()
   fakeClock.uninstall()
 })
 
