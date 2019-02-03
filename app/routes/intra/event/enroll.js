@@ -1,9 +1,20 @@
 const router = require('express-promise-router')({ mergeParams: true })
 const publicRouter = require('express-promise-router')({ mergeParams: true })
+const { BadRequest } = require('http-errors')
+
 const { validateCreate, validateUpdate } = require('../../../models/event/eventEnrollValidators')
 const { decorate, decorateList, decoratePublic, decoratePublicList } = require('../../../models/event/eventEnrollDecorators')
 const { findById, findAll, save, remove } = require('../../../models/event/eventEnrollModel')
 const { findByIdToResultRow } = require('../../../helpers/helpers')
+
+const isEnrollPossible = (req, previousEnrollResults) => {
+  if(req.resultRow.event_data.maxParticipants != null) {
+    const eventParticipantLimit = req.resultRow.event_data.maxParticipants + req.resultRow.event_data.reserveCount
+    if(previousEnrollResults.length >= eventParticipantLimit) {
+      throw new BadRequest('Event is full')
+    }
+  }
+}
 
 router.get('/', (req, res) =>
   findAll(req.db, req.params.eventId)
@@ -28,9 +39,13 @@ router.post('/', validateCreate(), (req, res) => {
   let newItem = {
     ...req.body
   }
-  return save(req.db, req.params.eventId, newItem)
-    .then(decorate)
-    .then(result => res.status(201).send(result))
+  return findAll(req.db, req.params.eventId)
+    .then(previousEnrollResults => {
+      isEnrollPossible(req, previousEnrollResults)
+      return save(req.db, req.params.eventId, newItem)
+        .then(decorate)
+        .then(result => res.status(201).send(result))
+    })
 })
 
 const findEventEnrollById = findByIdToResultRow('Event enroll', 'eventEnrollId', findById)
@@ -49,9 +64,13 @@ publicRouter.post('/', validateCreate(), (req, res) => {
   let newItem = {
     ...req.body
   }
-  return save(req.db, req.params.eventId, newItem)
-    .then(decoratePublic)
-    .then(result => res.status(201).send(result))
+  return findAll(req.db, req.params.eventId)
+    .then(previousEnrollResults => {
+      isEnrollPossible(req, previousEnrollResults)
+      return save(req.db, req.params.eventId, newItem)
+        .then(decoratePublic)
+        .then(result => res.status(201).send(result))
+    })
 })
 
 
