@@ -1,6 +1,7 @@
 const router = require('express-promise-router')({ mergeParams: true })
 const publicRouter = require('express-promise-router')({ mergeParams: true })
 
+const { findByIdToResultRow } = require('../../helpers/helpers')
 const { validateCreate, validateUpdate } = require('../../models/siteContent/sitePageValidators')
 const { decorate, decorateList } = require('../../models/siteContent/sitePageDecorators')
 const { findById, findAll, save, remove } = require('../../models/siteContent/sitePageModel')
@@ -8,47 +9,46 @@ const { findById, findAll, save, remove } = require('../../models/siteContent/si
 router.use('/navigation', require('./navigation').router)
 
 router.get('/', (req, res) =>
-  findAll()
+  findAll(req.db)
     .then(decorateList)
     .then(result => res.send(result)))
 
-publicRouter.get('/:sitePageId', (req, res) =>
-  Promise.resolve(decorate(req.resultSitePage))
-    .then(result => res.send(result))
-)
-
-const findPageById = (req, _, next, value) =>
-  findById(value)
-    .then(resultSitePage => {
-      req.resultSitePage = resultSitePage
-      next()
-    })
+router.get('/:sitePageId', (req, res) =>
+  res.send(decorate(req.resultRow)))
 
 router.post('/', validateCreate(), (req, res) => {
   let newItem = {
     ...req.body
   }
-  return save(newItem)
+  return save(req.db, newItem)
     .then(decorate)
     .then(result => res.status(201).send(result))
 })
 
 router.put('/:sitePageId', validateUpdate(), (req, res) => {
   const toSave = { ...req.body }
-  const oldItem = decorate(req.resultSitePage)
-  return save({ ...oldItem, ...toSave }, req.params.sitePageId)
+  const oldItem = decorate(req.resultRow)
+  return save(req.db, { ...oldItem, ...toSave }, req.params.sitePageId)
     .then(decorate)
     .then(result => res.send(result))
 })
 
 router.delete('/:sitePageId', (req, res) => {
   const { sitePageId } = req.params
-  return remove(sitePageId)
+  return remove(req.db, sitePageId)
     .then(id => res.status(204).send())
 })
 
-publicRouter.param('sitePageId', findPageById)
+const findPageById = findByIdToResultRow('Page', 'sitePageId', findById)
+
 router.param('sitePageId', findPageById)
+
+publicRouter.param('sitePageId', findPageById)
+
+publicRouter.get('/:sitePageId', (req, res) =>
+  res.send(decorate(req.resultRow)))
+
+
 
 module.exports = {
   router,

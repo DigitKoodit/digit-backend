@@ -13,8 +13,7 @@ const validateCreate = () =>
     checkSchema(schema)
   ])
 
-const validateUpdate = () =>
-  validateCreate()
+const validateUpdate = validateCreate
 
 module.exports = {
   validateCreate,

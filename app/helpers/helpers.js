@@ -22,6 +22,7 @@ const logBody = (msg = '') => (req, res, next) => {
   next()
 }
 
+// Overrides previous resultRows. Currently not needed anyways but might cause trouble later
 const findByIdToResultRow = (modelName, idField, findByIdAction) => (req, _, next, value) => {
   if(!isInt(req.params[idField], { min: 1, max: MAX_ID_INTEGER })) {
     throw new BadRequest(`${modelName} id must be integer`)
