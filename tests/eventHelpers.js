@@ -48,7 +48,7 @@ const initialEvents = [
       activeAt: '2019-01-01T12:00:00+02:00',
       activeUntil: '2019-02-01T12:00:00+02:00',
       isVisible: true,
-      maxParticipants: null,
+      maxParticipants: 2,
       reserveCount: 0,
       description: `Second event description`,
       fields: [
@@ -64,6 +64,31 @@ const initialEvents = [
           required: true,
           public: true,
           order: 0
+        },
+        {
+          id: 1,
+          name: 'radio',
+          type: 'radio',
+          label: 'Radio',
+          fieldName: 'Monivalinta',
+          required: true,
+          public: true,
+          order: 0,
+          options: [
+            {
+              name: 'option-a',
+              label: 'Option A',
+              isDefault: false,
+              reserveCount: 1
+            },
+            {
+              name: 'option-b',
+              label: 'Option B',
+              order: 0,
+              value: false,
+              reserveCount: 0
+            }
+          ]
         }
       ]
     }
@@ -77,8 +102,10 @@ const eventsInDb = db =>
 const insertInitialEvents = db =>
   db.tx(t =>
     t.batch(initialEvents.map(event => db.none(
-      `INSERT INTO event (event_data) VALUES ($[event_data])`, event))
-    ))
+      `INSERT INTO event (event_id, event_data) VALUES ($[event_id], $[event_data])`, event))
+    )
+    // For some reason batch doesn't keep the order.. and therefore 
+    .then(() => t.none('ALTER SEQUENCE event_event_id_seq RESTART WITH 3')))
 
 const removeAllFromDb = db => db.none('TRUNCATE TABLE event RESTART IDENTITY CASCADE')
 

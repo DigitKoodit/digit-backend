@@ -35,7 +35,7 @@ const initialEventEnrolls = [
       updatedAt: null,
       values: {
         etunimi: 'Other',
-        sukunimi: 'Guy'
+        radio: 'option-a'
       }
     }
   }
