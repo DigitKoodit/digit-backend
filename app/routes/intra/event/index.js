@@ -1,10 +1,10 @@
 const router = require('express-promise-router')({ mergeParams: true })
 const publicRouter = require('express-promise-router')({ mergeParams: true })
 
+const { findByIdToResultRow } = require('../../../helpers/helpers')
 const { validateCreate, validateUpdate } = require('../../../models/event/eventValidators')
 const { decorate, decorateList } = require('../../../models/event/eventDecorators')
 const { findById, findAll, save, remove } = require('../../../models/event/eventModel')
-const { findByIdToResultRow } = require('../../../helpers/helpers')
 
 router.get('/', (req, res) =>
   findAll(req.db)
