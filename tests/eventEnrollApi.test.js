@@ -42,18 +42,18 @@ describe('Event enroll API', async () => {
     let getPublic = true
 
     describe(`Event doesn't exists`, async () => {
-      test('GET /api/contents/events/:eventId/enrolls with non existing event id should return status 404', async () => {
+      test('GET /api/events/:eventId/enrolls with non existing event id should return status 404', async () => {
         const nonExistingEventId = 10101
         const eventNotFoundResponse = { message: 'Event not found' }
-        const response = await api.get(`/api/contents/events/${nonExistingEventId}/enrolls`)
+        const response = await api.get(`/api/events/${nonExistingEventId}/enrolls`)
           .expect(404)
         expect(response.body).toEqual(eventNotFoundResponse)
       })
     })
 
     describe('Event exists but no enrolls', async () => {
-      test('GET /api/contents/events/:eventId/enrolls should return status 200 and empty array ', async () => {
-        const response = await api.get(`/api/contents/events/${eventId}/enrolls`)
+      test('GET /api/events/:eventId/enrolls should return status 200 and empty array ', async () => {
+        const response = await api.get(`/api/events/${eventId}/enrolls`)
           .set('Authorization', jwtToken)
           .expect(200)
           .expect('Content-Type', /application\/json/)
@@ -67,9 +67,9 @@ describe('Event enroll API', async () => {
         await insertInitialEventEnrolls(db)
       })
 
-      test('GET /api/contents/events/:eventId/enrolls should return status 200 and empty array ', async () => {
+      test('GET /api/events/:eventId/enrolls should return status 200 and empty array ', async () => {
         const publicEventEnrollsAtStart = await eventEnrollsInDbByEvent(db, eventId, getPublic)
-        const response = await api.get(`/api/contents/events/${eventId}/enrolls`)
+        const response = await api.get(`/api/events/${eventId}/enrolls`)
           .expect(200)
           .expect('Content-Type', /application\/json/)
         expect(response.body.length).toBe(publicEventEnrollsAtStart.length)
@@ -78,11 +78,11 @@ describe('Event enroll API', async () => {
 
 
       describe(`Trying to enroll to a non existing event`, async () => {
-        test('POST /api/contents/events/:eventId/enrolls', async () => {
+        test('POST /api/events/:eventId/enrolls', async () => {
           const response404Event = { message: 'Event not found' }
           const nonExistingEventId = 10101
 
-          const response = await api.post(`/api/contents/events/${nonExistingEventId}/enrolls`)
+          const response = await api.post(`/api/events/${nonExistingEventId}/enrolls`)
             .send({})
             .expect(404)
           expect(response.body).toEqual(response404Event)

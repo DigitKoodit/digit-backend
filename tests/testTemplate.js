@@ -24,9 +24,9 @@ describe('Item API', async () => {
   })
 
   describe('Invalid request params', async () => {
-    test('GET /api/contents/items/:invalidItemId should return status 400', async () => {
+    test('GET /api/items/:invalidItemId should return status 400', async () => {
       const invalidItemId = 'INVALID_ID'
-      const response = await api.get(`/api/contents/items/${invalidItemId}`)
+      const response = await api.get(`/api/items/${invalidItemId}`)
         .expect(400)
 
       expect(response.body).toEqual(responseInvalidItemId)

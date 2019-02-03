@@ -23,9 +23,9 @@ describe('Event API', async () => {
   })
 
   describe('Invalid request params', async () => {
-    test('GET /api/contents/events/:invalidEventId should return status 400', async () => {
+    test('GET /api/events/:invalidEventId should return status 400', async () => {
       const invalidEventId = 'INVALID_ID'
-      const response = await api.get(`/api/contents/events/${invalidEventId}`)
+      const response = await api.get(`/api/events/${invalidEventId}`)
         .expect(400)
       expect(response.body).toEqual(responseInvalidEventId)
     })
