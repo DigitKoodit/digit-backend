@@ -49,6 +49,11 @@ Project codes are located on `/vagrant` folder which opens automatically after S
 
 ### Testing
 
+Run `npm test`
+
+> Running cli options requires two dashes between npm script and `Jest` command: `npm test -- <command>`
+> See Jest's [documents](https://jestjs.io/docs/en/cli.html) page
+
 Ensure `.env` file is present in the project root and contains atleast following keys. These defaults are set on `digit_dev.config.js`
 
 ```
@@ -56,15 +61,20 @@ PORT=3001
 TEST_PORT=3031
 ```
 
-Test located in `/tests` folder on project root. Run tests with command `npm test`. More cli options available on Jest's [documents](https://jestjs.io/docs/en/cli.html) page
 
-### Building
+#### Integration tests 
 
-TODO
+Integration tests are located in `/tests` folder on project root which tests API-endpoints. All tests that requires API must run `initializeApi` before all and `closeApi` after all tests. These functions intialized server with help of `supertest` library and are located on `testHelpers.js` file.
+
+If tests fail and error output is needed, comment out `console.error(...)` on `./app/index.js` error handler (last function).  
+
+#### Unit tests 
+
+Write unit tests next to a testable component if possible.
 
 ### Deploying / Publishing
 
-TOOD
+Production server has a bare git repo which allows making pushes directly to it using SSH. Currently managed only by Niemisami.
 
 ## Features
 
