@@ -17,7 +17,7 @@ const schema = {
   isCustom: getBooleanValidator('Komponenttitieto'),
   parentId: setIsOptional(getIntValidator('Parent')),
   sitePageId: setIsOptional(getIntValidator('Sisältötunniste')),
-  weight: getIntValidator('Paino'),
+  weight: getIntValidator('Paino', { min: 0 }),
   showOnNavigation: getBooleanValidator('Näkyvyys'),
   isPublished: getBooleanValidator('Julkaistu')
 }

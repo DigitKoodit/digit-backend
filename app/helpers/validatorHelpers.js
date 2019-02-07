@@ -1,6 +1,8 @@
 const { validationResult } = require('express-validator/check')
 const { matchedData } = require('express-validator/filter')
-const { pick, keys } = require('lodash')
+const pick = require('lodash/pick')
+const keys = require('lodash/keys')
+const noop = require('lodash/noop')
 const createError = require('http-errors')
 
 const checkValidationResult = (req, res, next) => {
@@ -78,11 +80,11 @@ const getLowerCaseStringValidator = (name, min = 1) => {
   })
 }
 
-const getIntValidator = name => ({
+const getIntValidator = (name, options) => ({
   in: ['body'],
-  isInt: true,
+  isInt: options ? options : true,
   toInt: true,
-  errorMessage: `${name} puuttuu`
+  errorMessage: `${name} puuttuu`,
 })
 
 const getDecimalValidator = name => ({

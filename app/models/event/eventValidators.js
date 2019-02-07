@@ -1,19 +1,6 @@
 const { checkSchema, oneOf } = require('express-validator/check')
 const { getValidator, getBooleanValidator, getIntValidator, getStringValidator, setIsOptional, getArrayValidator } = require('../../helpers/validatorHelpers')
 
-const textFieldSchema = {
-  'fields.*.isTextarea': setIsOptional(getBooleanValidator('Tekstialuetieto')),
-  'fields.*.maxLength': setIsOptional(getIntValidator('Maksimi merkkimäärä'))
-}
-
-const selectableFieldSchema = {
-  'fields.*.options': setIsOptional(getArrayValidator('Vaihtoehdot')),
-  'fields.*.options.*.name': setIsOptional(getStringValidator('Vaihtoehdon nimi')),
-  'fields.*.options.*.label': setIsOptional(getStringValidator('Vaihtoehdon tunniste')),
-  // 'fields.*.options.*.isDefault': getBooleanValidator('Vaihtoehdon oletusarvo'),
-  'fields.*.options.*.reserveCount': setIsOptional(getIntValidator('Vaihtoehdon kiintiö'))
-}
-
 const idSchema = {
   eventId: {
     in: ['params'],
@@ -22,14 +9,28 @@ const idSchema = {
   }
 }
 
+const textFieldSchema = {
+  'fields.*.isTextarea': setIsOptional(getBooleanValidator('Tekstialuetieto')),
+  'fields.*.maxLength': setIsOptional(getIntValidator('Maksimi merkkimäärä', { min: 0 }))
+}
+
+const selectableFieldSchema = {
+  'fields.*.options': setIsOptional(getArrayValidator('Vaihtoehdot')),
+  'fields.*.options.*.name': setIsOptional(getStringValidator('Vaihtoehdon nimi')),
+  'fields.*.options.*.label': setIsOptional(getStringValidator('Vaihtoehdon tunniste')),
+  // 'fields.*.options.*.isDefault': getBooleanValidator('Vaihtoehdon oletusarvo'),
+  'fields.*.options.*.reserveCount': setIsOptional(getIntValidator('Vaihtoehdon kiintiö', { min: 0 }))
+}
+
 const schema = {
   name: getStringValidator('Nimi'),
   description: setIsOptional(getStringValidator('Kuvaus')),
   activeUntil: getStringValidator('Lopetuspäivämäärä'),
+  reservedUntil: setIsOptional(getStringValidator('Kiintiöiden avautumispäivä')),
   isVisible: getBooleanValidator('Näkyvyys'),
   activeAt: getStringValidator('Aloituspäivämäärä'),
-  maxParticipants: getIntValidator('Osallistumismäärä'),
-  reserveCount: getIntValidator('Varasijat'),
+  maxParticipants: getIntValidator('Osallistumismäärä', { min: 0 }),
+  reserveCount: getIntValidator('Varasijat', { min: 0 }),
   fields: getArrayValidator('Kentät'),
   'fields.*.id': getIntValidator('Kentän id'),
   'fields.*.fieldName': getStringValidator('Kentän tyyppinimi'),
