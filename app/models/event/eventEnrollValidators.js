@@ -1,7 +1,7 @@
 const { checkSchema } = require('express-validator/check')
 const isEmpty = require('lodash/isEmpty')
 const isObject = require('lodash/isObject')
-const { getValidator, getStringValidator } = require('../../helpers/validatorHelpers')
+const { getValidator } = require('../../helpers/validatorHelpers')
 
 
 const validateValueField = (value, { req, path }) => {
@@ -17,8 +17,12 @@ const validateValueField = (value, { req, path }) => {
   }
 
   const expectTextValue = field.type === 'text'
-  const isValidTextValue = expectTextValue && (typeof value === 'string' || typeof value === 'number')
+  const isValidTextValue = expectTextValue && 
+    (typeof value === 'string' || typeof value === 'number') 
   if(isValidTextValue) {
+    if(field.maxLength != null && value.length > field.maxLength){
+      throw new Error('liian monta merkkiä')
+    }
     return true
   }
 

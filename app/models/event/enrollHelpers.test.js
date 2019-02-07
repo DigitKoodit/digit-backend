@@ -28,7 +28,7 @@ describe('Enroll helpers', () => {
         public: true,
         required: true,
         fieldName: 'Teksti',
-        maxLength: 64,
+        maxLength: 10,
         isTextarea: false,
         placeholder: null
       },

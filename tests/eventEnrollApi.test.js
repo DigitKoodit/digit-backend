@@ -10,7 +10,7 @@ let jwtToken
 let eventId = 1
 let complexEventId = 2
 let responseInvalidEnrollId = { message: 'Event enroll id must be integer' }
-
+let fakeClock
 
 beforeAll(async () => {
   api = await initializeApi()
@@ -105,10 +105,11 @@ describe('Event enroll API', async () => {
 
           expect(response.body).toEqual(newDbEntry)
         })
-        test.only('POST /api/events/:complexEventId/enrolls can not enroll when event is full', async () => {
+        test('POST /api/events/:complexEventId/enrolls can not enroll when event is full', async () => {
           const dummyEnrolls = [
             { values: { etunimi: 'Name1', radio: 'option-a' } },
-            { values: { etunimi: 'Name2', radio: 'option-b' } }
+            { values: { etunimi: 'Name2', radio: 'option-a' } },
+            { values: { etunimi: 'Name3', radio: 'option-b' } }
           ]
           const response400 = {
             message: 'Event is full'
@@ -116,6 +117,9 @@ describe('Event enroll API', async () => {
           // Event with id 2 has maxParticipant limit of 2 and one event previously inserted
           await api.post(`/api/events/${complexEventId}/enrolls`)
             .send(dummyEnrolls[0])
+            .expect(201)
+          await api.post(`/api/events/${complexEventId}/enrolls`)
+            .send(dummyEnrolls[1])
             .expect(201)
 
           const eventEnrollsAtStart = await eventEnrollsInDb(db)
@@ -176,8 +180,38 @@ describe('Event enroll API', async () => {
 
         expect(response.body).toEqual(response400)
       })
-    })
 
+      test('POST /api/intra/events/:eventId/enrolls with too long input string should return status 400', async () => {
+        const eventEnrollsAtStart = await eventEnrollsInDb(db)
+        const invalidNewEventEnroll = {
+          values: {
+            etunimi: 'regular string',
+            sukunimi: 'this is way longer string than accepted on event definition'
+          }
+        }
+        const response400 = {
+          message: 'Validation error',
+          validationErrors: [
+            {
+              location: 'body',
+              msg: 'liian monta merkkiä',
+              param: 'values.sukunimi',
+              value: 'this is way longer string than accepted on event definition'
+            }
+          ]
+        }
+        const response = await api.post(`/api/intra/events/${eventId}/enrolls`)
+          .set('Authorization', jwtToken)
+          .send(invalidNewEventEnroll)
+          .expect(400)
+          .expect('Content-Type', /application\/json/)
+
+        const eventEnrollsAfter = await eventEnrollsInDb(db)
+        expect(eventEnrollsAfter.length).toBe(eventEnrollsAtStart.length)
+
+        expect(response.body).toEqual(response400)
+      })
+    })
   })
 
   describe('Private API', async () => {

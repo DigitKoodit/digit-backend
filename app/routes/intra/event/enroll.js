@@ -1,25 +1,39 @@
 const router = require('express-promise-router')({ mergeParams: true })
 const publicRouter = require('express-promise-router')({ mergeParams: true })
-const { BadRequest } = require('http-errors')
 
 const { validateCreate, validateUpdate } = require('../../../models/event/eventEnrollValidators')
 const { decorate, decorateList, decoratePublic, decoratePublicList } = require('../../../models/event/eventEnrollDecorators')
 const { findById, findAll, save, remove } = require('../../../models/event/eventEnrollModel')
+const { decorate: decorateEvent } = require('../../../models/event/eventDecorators')
 const { findByIdToResultRow } = require('../../../helpers/helpers')
-
-const isEnrollPossible = (req, previousEnrollResults) => {
-  if(req.resultRow.event_data.maxParticipants != null) {
-    const eventParticipantLimit = req.resultRow.event_data.maxParticipants + req.resultRow.event_data.reserveCount
-    if(previousEnrollResults.length >= eventParticipantLimit) {
-      throw new BadRequest('Event is full')
-    }
-  }
-}
+const { isEnrollPossible, determineIsSpare } = require('../../../models/event/enrollHelpers')
 
 router.get('/', (req, res) =>
   findAll(req.db, req.params.eventId)
     .then(decorateList)
     .then(result => res.send(result)))
+
+router.post('/', validateCreate(), (req, res) =>
+  createNewEnroll(req)
+    .then(decorate)
+    .then(result => res.status(201).send(result)))
+
+const createNewEnroll = req =>
+  findAll(req.db, req.params.eventId)
+    .then(previousEnrollResults => {
+      const event = decorateEvent(req.resultRow)
+      const previousEnrolls = decorateList(previousEnrollResults)
+      isEnrollPossible(event, previousEnrolls)
+      const enroll = req.body
+      let newEnroll = {
+        ...enroll,
+        isSpare: determineIsSpare(event, previousEnrolls, enroll)
+      }
+      return save(req.db, req.params.eventId, newEnroll)
+    })
+    .catch(error => {
+      throw error
+    }) 
 
 router.put('/:eventEnrollId', validateUpdate(), (req, res) => {
   const toSave = { ...req.body }
@@ -35,19 +49,6 @@ router.delete('/:eventEnrollId', (req, res) => {
     .then(id => res.status(204).send())
 })
 
-router.post('/', validateCreate(), (req, res) => {
-  let newItem = {
-    ...req.body
-  }
-  return findAll(req.db, req.params.eventId)
-    .then(previousEnrollResults => {
-      isEnrollPossible(req, previousEnrollResults)
-      return save(req.db, req.params.eventId, newItem)
-        .then(decorate)
-        .then(result => res.status(201).send(result))
-    })
-})
-
 const findEventEnrollById = findByIdToResultRow('Event enroll', 'eventEnrollId', findById)
 
 router.param('eventEnrollId', findEventEnrollById)
@@ -60,18 +61,10 @@ publicRouter.get('/', (req, res) =>
 publicRouter.get('/:eventEnrollId', (req, res) =>
   res.send(decoratePublic(req.resultRow)))
 
-publicRouter.post('/', validateCreate(), (req, res) => {
-  let newItem = {
-    ...req.body
-  }
-  return findAll(req.db, req.params.eventId)
-    .then(previousEnrollResults => {
-      isEnrollPossible(req, previousEnrollResults)
-      return save(req.db, req.params.eventId, newItem)
-        .then(decoratePublic)
-        .then(result => res.status(201).send(result))
-    })
-})
+publicRouter.post('/', validateCreate(), (req, res) =>
+  createNewEnroll(req)
+    .then(decoratePublic)
+    .then(result => res.status(201).send(result)))
 
 
 publicRouter.param('eventEnrollId', findEventEnrollById)

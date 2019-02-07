@@ -8,8 +8,8 @@ const initialEvents = [
       activeAt: '2019-01-01T12:00:00+02:00',
       activeUntil: '2019-02-01T12:00:00+02:00',
       isVisible: true,
-      maxParticipants: null,
-      reserveCount: 0,
+      maxParticipants: 10,
+      reserveCount: null,
       description: `Event description`,
       fields: [
         {
@@ -31,7 +31,7 @@ const initialEvents = [
           label: 'Sukunimi',
           type: 'text',
           placeholder: null,
-          maxLength: 64,
+          maxLength: 10,
           isTextarea: false,
           fieldName: 'Teksti',
           required: true,
@@ -48,7 +48,7 @@ const initialEvents = [
       activeAt: '2019-01-01T12:00:00+02:00',
       activeUntil: '2019-02-01T12:00:00+02:00',
       isVisible: true,
-      maxParticipants: 2,
+      maxParticipants: 3,
       reserveCount: 0,
       description: `Second event description`,
       fields: [
@@ -70,7 +70,7 @@ const initialEvents = [
           name: 'radio',
           type: 'radio',
           label: 'Radio',
-          fieldName: 'Monivalinta',
+          fieldName: 'Valinta',
           required: true,
           public: true,
           order: 0,
@@ -79,7 +79,7 @@ const initialEvents = [
               name: 'option-a',
               label: 'Option A',
               isDefault: false,
-              reserveCount: 1
+              reserveCount: 2
             },
             {
               name: 'option-b',
