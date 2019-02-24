@@ -1,21 +1,25 @@
+const moment = require('moment')
 const lolex = require('lolex')
-const { determineIsSpare } = require('./enrollHelpers')
+const { BadRequest, Forbidden } = require('http-errors')
+const { isEnrollPossible, determineIsSpare } = require('./enrollHelpers')
 
 
 describe('Enroll helpers', () => {
   let fakeClock
   let initialStartTime = '2019-01-01T10:00:00+02:00'
   let eventActiveAt = '2019-01-01T12:00:00+02:00'
+  let eventActiveUntil = '2019-02-01T12:00:00+02:00'
   let eventReservedUntil = '2019-01-31T12:00:00+02:00'
   let mostEnrolledAt = '2019-01-01T13:00:00+02:00'
   const setDate = dateString => {
     fakeClock = lolex.install({
-      now: new Date(initialStartTime),
+      now: new Date(dateString),
       toFake: ['Date']
     })
   }
   let simpleEvent = {
     activeAt: eventActiveAt,
+    activeUntil: eventActiveUntil,
     reservedUntil: eventReservedUntil,
     maxParticipants: 5,
     reserveCount: 2,
@@ -127,6 +131,47 @@ describe('Enroll helpers', () => {
         expect(() =>
           determineIsSpare(simpleEvent, noRegularOrLimitSpaceLeftEnrolls, dummyEnroll)
         ).toThrowError('Event is full')
+      })
+    })
+  })
+  describe('isEnrollPossible', () => {
+    describe('enrolling before event has started', () => {
+      it('should throw Forbidden error', () => {
+        const dummyPreviousEnrolls = [dummyEnroll]
+        const timeBeforeEventStartTime = moment(eventActiveAt).subtract(1, 'minute').format()
+        setDate(timeBeforeEventStartTime)
+        expect(() =>
+          isEnrollPossible(simpleEvent, dummyPreviousEnrolls)
+        ).toThrow(Forbidden)
+      })
+    })
+    describe('enrolling after event has started', () => {
+      it('should throw Forbidden error', () => {
+        const dummyPreviousEnrolls = [dummyEnroll]
+        const timeAfterEventEndTime = moment(eventActiveUntil).add(1, 'minute').format()
+        setDate(timeAfterEventEndTime)
+        expect(() =>
+          isEnrollPossible(simpleEvent, dummyPreviousEnrolls)
+        ).toThrow(Forbidden)
+      })
+    })
+    describe('enrolling to a full event after it has started', () => {
+      it('should throw BadRequest error', () => {
+        const maxEnrolls = 8
+        const enrolls = Array.apply(null, { length: maxEnrolls }).map(entry => dummyEnroll)
+        const timeAfterEventStartTime = moment(eventActiveAt).add(1, 'minute').format()
+        setDate(timeAfterEventStartTime)
+        expect(() =>
+          isEnrollPossible(simpleEvent, enrolls)
+        ).toThrow(BadRequest)
+      })
+    })
+    describe('enrolling after event has started with no previous enrolls', () => {
+      it('should return true', () => {
+        const enrolls = []
+        const timeAfterEventStartTime = moment(eventActiveAt).add(1, 'minute').format()
+        setDate(timeAfterEventStartTime)
+        expect(isEnrollPossible(simpleEvent, enrolls)).toBeTruthy()
       })
     })
   })

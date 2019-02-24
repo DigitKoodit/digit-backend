@@ -1,17 +1,20 @@
 const moment = require('moment')
 const flatMap = require('lodash/flatMap')
-const { BadRequest } = require('http-errors')
+const { BadRequest, Forbidden } = require('http-errors')
 
 const isEnrollPossible = (event, previousEnrollResults) => {
   const { maxParticipants, reserveCount } = event
+  if(moment().isBefore(moment(event.activeAt)) || moment().isAfter(moment(event.activeUntil))) {
+    throw new Forbidden(`Enrolling hasn't stated yet`)
+  }
   if(maxParticipants != null) {
     const eventParticipantLimit = maxParticipants + reserveCount
     if(previousEnrollResults.length >= eventParticipantLimit) {
       throw new BadRequest('Event is full')
     }
   }
+  return true
 }
-
 
 const determineIsSpare = (event, previousEnrolls, enroll) => {
   const { fields, reservedUntil, maxParticipants, reserveCount } = event
