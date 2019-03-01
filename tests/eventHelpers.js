@@ -49,7 +49,7 @@ const initialEvents = [
       activeUntil: '2019-02-01T12:00:00+02:00',
       isVisible: true,
       maxParticipants: 3,
-      reserveCount: 0,
+      reserveCount: 1,
       description: `Second event description`,
       fields: [
         {
@@ -86,7 +86,7 @@ const initialEvents = [
               label: 'Option B',
               order: 0,
               value: false,
-              reserveCount: 0
+              reserveCount: 1
             }
           ]
         }

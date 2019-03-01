@@ -66,4 +66,31 @@ eventEnroll.remove = (db, id) => {
   return db.one('DELETE FROM event_enroll WHERE event_enroll_id = $1 RETURNING event_enroll_id', id)
 }
 
+eventEnroll.recalculateSpareEnrolls = (db, eventId) => {
+  /**
+   * On field level:
+   *  search field which selected by to-be-deleted enroll
+   *  search all spare enrollments which has this field and spare
+   *  sort by date
+   *  update first on the list to be not spare
+  */
+  return findEventById(db, eventId)
+    let sql = `UPDATE event_enroll 
+    SET event_enroll_data = jsonb_set(event_enroll_data, '{isSpare}', 'false')
+    WHERE event_enroll_id = (
+      SELECT ee.event_enroll_id
+        FROM event_enroll ee
+        LEFT JOIN event e ON ee.event_id = e.event_id
+        WHERE e.event_id = 11 AND (ee.event_enroll_data ->> 'isSpare')::boolean
+      ORDER BY ee.event_enroll_data->>'createdAt'
+      LIMIT 1
+      )
+    RETURNING event_enroll_id
+  
+  
+  `
+  return db.oneOrNone(sql, { eventId })
+}
+
+
 module.exports = eventEnroll

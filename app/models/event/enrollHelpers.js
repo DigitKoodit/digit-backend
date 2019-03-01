@@ -18,9 +18,9 @@ const isEnrollPossible = (event, previousEnrollResults) => {
 
 const determineIsSpare = (event, previousEnrolls, enroll) => {
   const { fields, reservedUntil, maxParticipants, reserveCount } = event
-  const maxLimit = maxParticipants + reserveCount 
+  const eventParticipantLimit = maxParticipants + reserveCount 
 
-  if(previousEnrolls.length >= maxLimit) {
+  if(previousEnrolls.length >= eventParticipantLimit) {
     throw new BadRequest('Event is full')
   }
 

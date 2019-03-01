@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "start": "node ./bin/index.js",
-    "test": "NODE_ENV=test jest  --runInBand",
+    "test": "NODE_ENV=test jest  --runInBand --watch",
     "lint": "estlint ./app"
   },
   "author": "niemisami",

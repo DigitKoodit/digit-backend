@@ -1,5 +1,5 @@
+const { pgp } = require('../db/pgp')
 const { decorateList, decoratePublicList } = require('../app/models/event/eventEnrollDecorators')
-
 
 // *NOTE* enrolls relies on existing evetns 1 and 2. Defined in ./eventHelpers.js 
 const initialEventEnrolls = [
@@ -9,6 +9,7 @@ const initialEventEnrolls = [
     eventEnrollData: {
       createdAt: '2019-01-02T12:00:00+02:00',
       updatedAt: null,
+      isSpare: false,
       values: {
         etunimi: 'Test',
         sukunimi: 'Person'
@@ -21,6 +22,7 @@ const initialEventEnrolls = [
     eventEnrollData: {
       createdAt: '2019-01-02T13:00:00+02:00',
       updatedAt: null,
+      isSpare: false,
       values: {
         etunimi: 'Bob',
         sukunimi: 'Uncle'
@@ -33,6 +35,7 @@ const initialEventEnrolls = [
     eventEnrollData: {
       createdAt: '2019-01-15T13:00:00+02:00',
       updatedAt: null,
+      isSpare: false,
       values: {
         etunimi: 'Other',
         radio: 'option-a'
@@ -53,11 +56,17 @@ const eventEnrollsInDbByEvent = (db, eventId, getPublic) =>
     .then(getPublic ? decoratePublicList : decorateList)
 
 const insertInitialEventEnrolls = db =>
-  db.tx(t =>
-    t.batch(initialEventEnrolls.map(event => db.none(
-      `INSERT INTO event_enroll (event_id, event_enroll_data) 
-        VALUES ($[eventId], $[eventEnrollData])`, event))
-    ))
+  insertEnrolls(db, initialEventEnrolls)
+
+const insertEnrolls = (db, enrolls) => {
+  const columnSet = new pgp.helpers.ColumnSet([
+    { name: 'event_id', prop: 'eventId' },
+    { name: 'event_enroll_data', prop: 'eventEnrollData', mod: ':json' },
+
+  ], { table: 'event_enroll' })
+  const insertEnrolls = pgp.helpers.insert(enrolls, columnSet)
+  return db.any(insertEnrolls)
+}
 
 const removeAllFromDb = db => db.none('TRUNCATE TABLE event_enroll RESTART IDENTITY CASCADE')
 
@@ -66,5 +75,6 @@ module.exports = {
   eventEnrollsInDb,
   eventEnrollsInDbByEvent,
   insertInitialEventEnrolls,
+  insertEnrolls,
   removeAllFromDb
 }

@@ -1,8 +1,14 @@
 const lolex = require('lolex')
+const moment = require('moment')
 const { db } = require('../db/pgp')
 const { initializeApi, closeApi, getJwtToken } = require('./testHelpers')
 
-const { insertInitialEventEnrolls, eventEnrollsInDb, eventEnrollsInDbByEvent, removeAllFromDb } = require('./eventEnrollHelpers')
+const {
+  insertInitialEventEnrolls,
+  insertEnrolls,
+  eventEnrollsInDb,
+  eventEnrollsInDbByEvent,
+  removeAllFromDb } = require('./eventEnrollHelpers')
 const { insertInitialEvents, removeAllFromDb: removeAllEventsFromDb } = require('./eventHelpers')
 
 let api
@@ -10,6 +16,7 @@ let jwtToken
 let eventId = 1
 let complexEventId = 2
 let responseInvalidEnrollId = { message: 'Event enroll id must be integer' }
+let currentDate = '2019-01-31T12:00:00+02:00'
 let fakeClock
 
 beforeAll(async () => {
@@ -17,7 +24,7 @@ beforeAll(async () => {
   jwtToken = await getJwtToken(db)
 
   fakeClock = lolex.install({
-    now: new Date('2019-01-31T12:00:00+02:00'), // Set fixed time before event closes and enrolls have occured
+    now: new Date(currentDate), // Set fixed time before event closes and enrolls have occured
     toFake: ['Date']
   })
 })
@@ -109,22 +116,26 @@ describe('Event enroll API', async () => {
           const dummyEnrolls = [
             { values: { etunimi: 'Name1', radio: 'option-a' } },
             { values: { etunimi: 'Name2', radio: 'option-a' } },
-            { values: { etunimi: 'Name3', radio: 'option-b' } }
+            { values: { etunimi: 'Name3', radio: 'option-b' } },
+            { values: { etunimi: 'Name4', radio: 'option-b' } }
           ]
           const response400 = {
             message: 'Event is full'
           }
-          // Event with id 2 has maxParticipant limit of 2 and one event previously inserted
+          // Event with id 2 has maxParticipant limit of 3 one event previously inserted and 1 reserve
           await api.post(`/api/events/${complexEventId}/enrolls`)
             .send(dummyEnrolls[0])
             .expect(201)
           await api.post(`/api/events/${complexEventId}/enrolls`)
             .send(dummyEnrolls[1])
             .expect(201)
+          await api.post(`/api/events/${complexEventId}/enrolls`)
+            .send(dummyEnrolls[2])
+            .expect(201)
 
           const eventEnrollsAtStart = await eventEnrollsInDb(db)
 
-          // Third enroll should fail
+          // Fourth enroll should fail
           const response = await api.post(`/api/events/${complexEventId}/enrolls`)
             .send(dummyEnrolls[1])
             .expect(400)
@@ -134,6 +145,42 @@ describe('Event enroll API', async () => {
           expect(eventEnrollsAfter.length).toBe(eventEnrollsAtStart.length)
 
           expect(response.body).toEqual(response400)
+        })
+        test('POST /api/events/:complexEventId/enrolls creates spare enrollment when event max limit reached', async () => {
+          const dummyEnrolls = [
+            { values: { etunimi: 'Name1', radio: 'option-a' } },
+            { values: { etunimi: 'Name2', radio: 'option-a' } },
+            { values: { etunimi: 'Name3', radio: 'option-a' } }
+          ]
+          // Event with id 2 has maxParticipant limit of 2 and one event previously inserted
+          await api.post(`/api/events/${complexEventId}/enrolls`)
+            .send(dummyEnrolls[0])
+            .expect(201)
+          await api.post(`/api/events/${complexEventId}/enrolls`)
+            .send(dummyEnrolls[1])
+            .expect(201)
+
+          const eventEnrollsAtStart = await eventEnrollsInDb(db)
+          const epxectedEnroll = {
+            id: 6,
+            eventId: 2,
+            isSpare: true,
+            createdAt: currentDate,
+            values: {
+              etunimi: 'Name3',
+              radio: 'option-a'
+            }
+          }
+          // Third enroll should fail
+          const response = await api.post(`/api/events/${complexEventId}/enrolls`)
+            .send(dummyEnrolls[2])
+            .expect(201)
+            .expect('Content-Type', /application\/json/)
+
+          const eventEnrollsAfter = await eventEnrollsInDb(db)
+          expect(eventEnrollsAfter.length).toBe(eventEnrollsAtStart.length + 1)
+
+          expect(response.body).toEqual(epxectedEnroll)
         })
       })
 
@@ -316,6 +363,83 @@ describe('Event enroll API', async () => {
             const eventEnrollsAfter = await eventEnrollsInDb(db)
             expect(eventEnrollsAfter.length).toBe(eventEnrollsAtStart.length - 1)
             expect(eventEnrollsAfter).not.toContainEqual(deletedEventEnroll)
+          })
+          test('DELETE /api/intra/events/:complexEventId/enrolls updates last spare enroll', async () => {
+            // "Complex" event 2 has one existing enroll with radio option-a 
+            // maxParticipant is 3 and reserve count 1
+            // option-a has reserve 2 and option-b reserve 1
+            // By removing second option-a entry the isSpare of last one should be false after operation
+            const dummyEnrolls = [
+              {
+                eventId: complexEventId,
+                eventEnrollData: {
+                  createdAt: moment(currentDate).add('5', 'minutes').format(),
+                  updatedAt: null,
+                  isSpare: false,
+                  values: {
+                    etunimi: 'Name1',
+                    radio: 'option-a'
+                  }
+                }
+              },
+              {
+                eventId: complexEventId,
+                eventEnrollData: {
+                  createdAt: moment(currentDate).add('10', 'minutes').format(),
+                  updatedAt: null,
+                  isSpare: false,
+                  values: {
+                    etunimi: 'Name2',
+                    radio: 'option-a'
+                  }
+                }
+              },
+              {
+                eventId: complexEventId,
+                eventEnrollData: {
+                  createdAt: moment(currentDate).add('15', 'minutes').format(),
+                  updatedAt: null,
+                  isSpare: false,
+                  values: {
+                    etunimi: 'Name2',
+                    radio: 'option-b'
+                  }
+                }
+              },
+              {
+                eventId: complexEventId,
+                eventEnrollData: {
+                  createdAt: moment(currentDate).add('20', 'minutes').format(),
+                  updatedAt: null,
+                  isSpare: true,
+                  values: {
+                    etunimi: 'Name3',
+                    radio: 'option-a'
+                  }
+                }
+              }
+            ]
+            await insertEnrolls(db, dummyEnrolls)
+
+            const eventEnrollsAtStart = await eventEnrollsInDbByEvent(db, complexEventId)
+            const deletedEventEnroll = eventEnrollsAtStart[1]
+            await api.delete(`/api/intra/events/${complexEventId}/enrolls/${deletedEventEnroll.id}`)
+              .set('Authorization', jwtToken)
+              .expect(204)
+            const eventEnrollsAfter = await eventEnrollsInDbByEvent(db, complexEventId)
+            expect(eventEnrollsAfter.length).toBe(eventEnrollsAtStart.length - 1)
+            expect(eventEnrollsAfter).not.toContainEqual(deletedEventEnroll)
+
+            const spareToNormalEnroll = eventEnrollsAfter[3]
+            const expectedUpdatedEnroll = {
+              isSpare: false,
+              createdAt: moment(currentDate).add('20', 'minutes').format(),
+              values: {
+                etunimi: 'Name3',
+                radio: 'option-a'
+              }
+            }
+            expect(spareToNormalEnroll).toMatchObject(expectedUpdatedEnroll)
           })
         })
       })

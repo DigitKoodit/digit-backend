@@ -33,7 +33,7 @@ const createNewEnroll = req =>
     })
     .catch(error => {
       throw error
-    }) 
+    })
 
 router.put('/:eventEnrollId', validateUpdate(), (req, res) => {
   const toSave = { ...req.body }
@@ -45,8 +45,9 @@ router.put('/:eventEnrollId', validateUpdate(), (req, res) => {
 
 router.delete('/:eventEnrollId', (req, res) => {
   const { eventEnrollId } = req.params
-  return remove(req.db, eventEnrollId)
-    .then(id => res.status(204).send())
+  return req.startTx(txDb =>
+    remove(txDb, eventEnrollId)
+      .then(id => res.status(204).send()))
 })
 
 const findEventEnrollById = findByIdToResultRow('Event enroll', 'eventEnrollId', findById)
