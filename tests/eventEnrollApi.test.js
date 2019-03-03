@@ -16,17 +16,21 @@ let jwtToken
 let eventId = 1
 let complexEventId = 2
 let responseInvalidEnrollId = { message: 'Event enroll id must be integer' }
-let currentDate = '2019-01-31T12:00:00+02:00'
+let currentDate = '2019-01-30T12:00:00+02:00'
 let fakeClock
+
+const setDate = dateString => {
+  fakeClock = lolex.install({
+    now: new Date(dateString),
+    toFake: ['Date']
+  })
+}
 
 beforeAll(async () => {
   api = await initializeApi()
   jwtToken = await getJwtToken(db)
 
-  fakeClock = lolex.install({
-    now: new Date(currentDate), // Set fixed time before event closes and enrolls have occured
-    toFake: ['Date']
-  })
+  setDate(currentDate)
 })
 
 afterAll(() => {
@@ -432,8 +436,85 @@ describe('Event enroll API', async () => {
 
             const spareToNormalEnroll = eventEnrollsAfter[3]
             const expectedUpdatedEnroll = {
+              id: 7,
               isSpare: false,
               createdAt: moment(currentDate).add('20', 'minutes').format(),
+              eventId: complexEventId,
+              values: {
+                etunimi: 'Name3',
+                radio: 'option-a'
+              }
+            }
+            expect(spareToNormalEnroll).toMatchObject(expectedUpdatedEnroll)
+          })
+          test('DELETE /api/intra/events/:complexEventId/enrolls does not update last spare enroll when other not limited field enroll is deleted from between', async () => {
+            const dummyEnrolls = [
+              {
+                eventId: complexEventId,
+                eventEnrollData: {
+                  createdAt: moment(currentDate).add('5', 'minutes').format(),
+                  updatedAt: null,
+                  isSpare: false,
+                  values: {
+                    etunimi: 'Name1',
+                    radio: 'option-a'
+                  }
+                }
+              },
+              {
+                eventId: complexEventId,
+                eventEnrollData: {
+                  createdAt: moment(currentDate).add('10', 'minutes').format(),
+                  updatedAt: null,
+                  isSpare: false,
+                  values: {
+                    etunimi: 'Name2',
+                    radio: 'option-a'
+                  }
+                }
+              },
+              {
+                eventId: complexEventId,
+                eventEnrollData: {
+                  createdAt: moment(currentDate).add('15', 'minutes').format(),
+                  updatedAt: null,
+                  isSpare: false,
+                  values: {
+                    etunimi: 'Name2',
+                    radio: 'option-b'
+                  }
+                }
+              },
+              {
+                eventId: complexEventId,
+                eventEnrollData: {
+                  createdAt: moment(currentDate).add('20', 'minutes').format(),
+                  updatedAt: null,
+                  isSpare: true,
+                  values: {
+                    etunimi: 'Name3',
+                    radio: 'option-a'
+                  }
+                }
+              }
+            ]
+            await insertEnrolls(db, dummyEnrolls)
+
+            const eventEnrollsAtStart = await eventEnrollsInDbByEvent(db, complexEventId)
+            const deletedEventEnroll = eventEnrollsAtStart[3] // option-b
+            await api.delete(`/api/intra/events/${complexEventId}/enrolls/${deletedEventEnroll.id}`)
+              .set('Authorization', jwtToken)
+              .expect(204)
+            const eventEnrollsAfter = await eventEnrollsInDbByEvent(db, complexEventId)
+            expect(eventEnrollsAfter.length).toBe(eventEnrollsAtStart.length - 1)
+            expect(eventEnrollsAfter).not.toContainEqual(deletedEventEnroll)
+
+            const spareToNormalEnroll = eventEnrollsAfter[3]
+            const expectedUpdatedEnroll = {
+              id: 7,
+              isSpare: true,
+              createdAt: moment(currentDate).add('20', 'minutes').format(),
+              eventId: complexEventId,
               values: {
                 etunimi: 'Name3',
                 radio: 'option-a'

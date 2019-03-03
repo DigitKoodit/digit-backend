@@ -80,12 +80,13 @@ const getLowerCaseStringValidator = (name, min = 1) => {
   })
 }
 
-const getIntValidator = (name, options) => ({
-  in: ['body'],
-  isInt: options ? options : true,
-  toInt: true,
-  errorMessage: `${name} puuttuu`,
-})
+const getIntValidator = (name, options) =>
+  ({
+    in: ['body'],
+    isInt: options ? { options } : true,
+    toInt: true,
+    errorMessage: `${name} puuttuu`,
+  })
 
 const getDecimalValidator = name => ({
   in: ['body'],
