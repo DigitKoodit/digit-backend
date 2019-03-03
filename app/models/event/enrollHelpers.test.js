@@ -1,7 +1,7 @@
 const moment = require('moment')
 const lolex = require('lolex')
 const { BadRequest, Forbidden } = require('http-errors')
-const { isEnrollPossible, determineIsSpare } = require('./enrollHelpers')
+const { isEnrollPossible, determineIsSpare, getLimitedFieldIfEnrollMatch } = require('./enrollHelpers')
 
 
 describe('Enroll helpers', () => {
@@ -174,5 +174,12 @@ describe('Enroll helpers', () => {
         expect(isEnrollPossible(simpleEvent, enrolls)).toBeTruthy()
       })
     })
+  })
+  describe('getLimitedFieldIfEnrollMatch', () => {
+    it('should return name and value of limited field', () => {
+      const enrollWithLimitedOption = { id: 1, isSpare: true, createdAt: mostEnrolledAt, values: { firstName: 'Name1', radio: 'optionA' } }
+      expect(getLimitedFieldIfEnrollMatch(simpleEvent, enrollWithLimitedOption)).toEqual(['radio', 'optionA'])
+    })
+
   })
 })

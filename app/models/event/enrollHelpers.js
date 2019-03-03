@@ -2,6 +2,8 @@ const moment = require('moment')
 const flatMap = require('lodash/flatMap')
 const { BadRequest, Forbidden } = require('http-errors')
 
+const hasStillLimits = event => event.reservedUntil && moment(event.reservedUntil).isAfter(moment())
+
 const isEnrollPossible = (event, previousEnrollResults) => {
   const { maxParticipants, reserveCount } = event
   if(moment().isBefore(moment(event.activeAt)) || moment().isAfter(moment(event.activeUntil))) {
@@ -17,14 +19,14 @@ const isEnrollPossible = (event, previousEnrollResults) => {
 }
 
 const determineIsSpare = (event, previousEnrolls, enroll) => {
-  const { fields, reservedUntil, maxParticipants, reserveCount } = event
-  const eventParticipantLimit = maxParticipants + reserveCount 
+  const { fields, maxParticipants, reserveCount } = event
+  const eventParticipantLimit = maxParticipants + reserveCount
 
   if(previousEnrolls.length >= eventParticipantLimit) {
     throw new BadRequest('Event is full')
   }
 
-  if(reservedUntil && moment(reservedUntil).isBefore(moment())) {
+  if(!hasStillLimits(event)) {
     // No more limits
     return false
   }
@@ -67,7 +69,25 @@ const determineIsSpare = (event, previousEnrolls, enroll) => {
   return isSpare
 }
 
+const getLimitedFieldIfEnrollMatch = (event, enroll) => {
+  const optionFields = event.fields.filter(field => !!field.options)
+  const enrollKeyValue = Object.entries(enroll.values)
+    .find(([key, value]) =>
+      optionFields
+        .find(field =>
+          field.options.find(option => option.name === value && option.reserveCount != null))
+    )
+
+  // if(enrollKeyValue) {
+  //   const reserveCount = optionFields.find(field => field.options.find(option => option.name === enrollKeyValue[0] && option.reserveCount != null))
+  //   return [...enrollKeyValue, reserveCount]
+  // }
+  return enrollKeyValue || []
+}
+
 module.exports = {
   isEnrollPossible,
-  determineIsSpare
+  determineIsSpare,
+  hasStillLimits,
+  getLimitedFieldIfEnrollMatch
 }
