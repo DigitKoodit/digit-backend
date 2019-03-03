@@ -61,7 +61,7 @@ const determineIsSpare = (event, previousEnrolls, enroll) => {
         , {}))
 
   // Check if reserve count is full by how many enrolls have come before next new enroll
-  const isSpare = limitedFieldOptions.every(optionLimit =>
+  const isSpare = limitedFieldOptions.some(optionLimit =>
     enrollsByOptionType.find(enrollsToOption =>
       enrollsToOption[optionLimit.name] >= optionLimit.reserveCount))
   return isSpare
