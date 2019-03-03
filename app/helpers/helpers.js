@@ -29,6 +29,9 @@ const findByIdToResultRow = (modelName, idField, findByIdAction) => (req, _, nex
   }
   return findByIdAction(req.db, toInt(value))
     .then(resultRow => {
+      if(req.resultRow) {
+        req.resultRowParent = req.resultRow
+      }
       req.resultRow = resultRow
       next()
     })
