@@ -3,10 +3,10 @@ const publicRouter = require('express-promise-router')({ mergeParams: true })
 
 const { validateCreate, validateUpdate } = require('../../../models/event/eventEnrollValidators')
 const { decorate, decorateList, decoratePublic, decoratePublicList } = require('../../../models/event/eventEnrollDecorators')
-const { findById, findAll, save, remove } = require('../../../models/event/eventEnrollModel')
+const { findById, findAll, save, remove, recalculateSpareEnrolls, recalculateSpareEnrollWithLimitedField } = require('../../../models/event/eventEnrollModel')
 const { decorate: decorateEvent } = require('../../../models/event/eventDecorators')
 const { findByIdToResultRow } = require('../../../helpers/helpers')
-const { isEnrollPossible, determineIsSpare } = require('../../../models/event/enrollHelpers')
+const { isEnrollPossible, determineIsSpare, hasStillLimits, getLimitedFieldIfEnrollMatch } = require('../../../models/event/enrollHelpers')
 
 router.get('/', (req, res) =>
   findAll(req.db, req.params.eventId)
@@ -45,9 +45,36 @@ router.put('/:eventEnrollId', validateUpdate(), (req, res) => {
 
 router.delete('/:eventEnrollId', (req, res) => {
   const { eventEnrollId } = req.params
+  const removableEnroll = decorate(req.resultRow)
+
+  if(removableEnroll.isSpare) {
+    return remove(req.db, eventEnrollId)
+      .then(() => res.status(204).send())
+  }
+  const event = decorateEvent(req.resultRowParent)
+
   return req.startTx(txDb =>
     remove(txDb, eventEnrollId)
-      .then(id => res.status(204).send()))
+      .then(removedResult => {
+        // TODO: when and how to clear all spare spots?
+        if(hasStillLimits(event)) {
+          const [fieldName, fieldValue] = getLimitedFieldIfEnrollMatch(event, removableEnroll)
+          if(fieldName) {
+            return recalculateSpareEnrollWithLimitedField(txDb, event.id, fieldName, fieldValue)
+              .then(result => {
+                return true
+              })
+          }
+        }
+        return
+      })
+      .then(wasSomethingUpdated => {
+        if(!wasSomethingUpdated) {
+          return recalculateSpareEnrolls(txDb, event.id)
+        }
+        return
+      }))
+    .then(() => res.status(204).send())
 })
 
 const findEventEnrollById = findByIdToResultRow('Event enroll', 'eventEnrollId', findById)

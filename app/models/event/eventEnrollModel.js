@@ -67,29 +67,36 @@ eventEnroll.remove = (db, id) => {
 }
 
 eventEnroll.recalculateSpareEnrolls = (db, eventId) => {
-  /**
-   * On field level:
-   *  search field which selected by to-be-deleted enroll
-   *  search all spare enrollments which has this field and spare
-   *  sort by date
-   *  update first on the list to be not spare
-  */
-  return findEventById(db, eventId)
-    let sql = `UPDATE event_enroll 
+  let updateFromAllSpareEnrolls = `UPDATE event_enroll 
     SET event_enroll_data = jsonb_set(event_enroll_data, '{isSpare}', 'false')
     WHERE event_enroll_id = (
       SELECT ee.event_enroll_id
         FROM event_enroll ee
         LEFT JOIN event e ON ee.event_id = e.event_id
-        WHERE e.event_id = 11 AND (ee.event_enroll_data ->> 'isSpare')::boolean
+        WHERE e.event_id = $[eventId] AND (ee.event_enroll_data ->> 'isSpare')::boolean
       ORDER BY ee.event_enroll_data->>'createdAt'
       LIMIT 1
       )
     RETURNING event_enroll_id
-  
-  
   `
-  return db.oneOrNone(sql, { eventId })
+  return db.oneOrNone(updateFromAllSpareEnrolls, { eventId })
+}
+
+eventEnroll.recalculateSpareEnrollWithLimitedField = (db, eventId, fieldName, fieldValue) => {
+  let updateOnlyOnesWithFieldName = `UPDATE event_enroll 
+    SET event_enroll_data = jsonb_set(event_enroll_data, '{isSpare}', 'false')
+    WHERE event_enroll_id = (
+      SELECT ee.event_enroll_id
+        FROM event_enroll ee
+        LEFT JOIN event e ON ee.event_id = e.event_id
+        WHERE e.event_id = $[eventId] AND (ee.event_enroll_data ->> 'isSpare')::boolean
+          AND ee.event_enroll_data->'values'->>'$[fieldName:value]' = '$[fieldValue:value]'
+      ORDER BY ee.event_enroll_data->>'createdAt'
+      LIMIT 1
+      ) 
+    RETURNING event_enroll_id
+  `
+  return db.oneOrNone(updateOnlyOnesWithFieldName, { eventId, fieldName, fieldValue })
 }
 
 
