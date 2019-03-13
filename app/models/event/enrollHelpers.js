@@ -1,13 +1,15 @@
 const moment = require('moment')
-const flatMap = require('lodash/flatMap')
 const { BadRequest, Forbidden } = require('http-errors')
+const { bifurcateBy } = require('../../helpers/helpers')
 
 const hasStillLimits = event => event.reservedUntil && moment(event.reservedUntil).isAfter(moment())
 
 const isEnrollPossible = (event, previousEnrollResults) => {
   const { maxParticipants, reserveCount } = event
-  if(moment().isBefore(moment(event.activeAt)) || moment().isAfter(moment(event.activeUntil))) {
+  if(moment().isBefore(moment(event.activeAt))) {
     throw new Forbidden(`Enrolling hasn't stated yet`)
+  } else if(moment().isAfter(moment(event.activeUntil))) {
+    throw new Forbidden(`Enrolling has ended`)
   }
   if(maxParticipants != null) {
     const eventParticipantLimit = maxParticipants + reserveCount
@@ -18,6 +20,23 @@ const isEnrollPossible = (event, previousEnrollResults) => {
   return true
 }
 
+const getLimitedFields = fields => fields.reduce((acc, field) =>
+  field.options
+    ? ({
+      ...acc,
+      [field.name]: field.options.reduce(reduceOptionReserveCounts, {})
+    })
+    : null,
+  {})
+
+const reduceOptionReserveCounts = (acc, option) =>
+  option.reserveCount
+    ? ({
+      ...acc,
+      [option.name]: option.reserveCount
+    })
+    : null
+
 const determineIsSpare = (event, previousEnrolls, enroll) => {
   const { fields, maxParticipants, reserveCount } = event
   const eventParticipantLimit = maxParticipants + reserveCount
@@ -27,46 +46,40 @@ const determineIsSpare = (event, previousEnrolls, enroll) => {
   }
 
   if(!hasStillLimits(event)) {
-    // No more limits
     return false
   }
-  const regularEnrollCount = previousEnrolls.filter(enroll => !enroll.isSpare).length
-  if(regularEnrollCount >= maxParticipants) {
+
+  const limitedFields = getLimitedFields(fields)
+  const hasLimitedFields = limitedFields && Object.values(limitedFields).filter(value => !!value).length
+
+  const [spareEnrolls, regularEnrolls] = bifurcateBy(previousEnrolls, enroll => enroll.isSpare)
+  if(!hasLimitedFields) {
+    if(regularEnrolls.length < maxParticipants) {
+      return false
+    }
     return true
   }
 
-  // Iterate through values which are in enroll
-  // Find corresponding field from event fields 
-  // Returns an array which contains the option which should be added if space left
-  // Wrap and return result in array so empty values are filtered out automatically by flatMap
-  const limitedFieldOptions = flatMap(Object.entries(enroll.values), ([key, value]) => {
-    const fieldData = fields.find(field => field.name === key && field.options)
-    if(!fieldData) {
-      return []
-    }
-    const option = fieldData.options.find(option => option.name === value)
-    return [{ ...option, fieldName: fieldData.name }]
-  })
+  // Collect info about field of this particular enroll
+  const newEnrollLimitField = Object.entries(limitedFields)
+    .map(([key, value]) => ({
+      key,
+      value: enroll.values[key],
+      reserveCount: value[enroll.values[key]]
+    }))[0] // FIXME: currently allow only one limiting field
 
-  // Does array magic and calculates how many enrolls with specific option has
-  const enrollsByOptionType = limitedFieldOptions.map(option =>
-    previousEnrolls.map(enroll => enroll.values)
-      .reduce((acc, value) =>
-        value[option.fieldName] === option.name
-          ? ({
-            ...acc,
-            [option.name]: acc[option.name]
-              ? acc[option.name] + 1
-              : 1
-          })
-          : acc
-        , {}))
-
-  // Check if reserve count is full by how many enrolls have come before next new enroll
-  const isSpare = limitedFieldOptions.some(optionLimit =>
-    enrollsByOptionType.find(enrollsToOption =>
-      enrollsToOption[optionLimit.name] >= optionLimit.reserveCount))
-  return isSpare
+  const spareLimitedEnrolls = spareEnrolls.filter(enroll =>
+    enroll.values[newEnrollLimitField.key] === newEnrollLimitField.value
+  )
+  const regularLimitedEnrolls = regularEnrolls.filter(enroll =>
+    enroll.values[newEnrollLimitField.key] === newEnrollLimitField.value
+  )
+  const noMoreRegularSpace = regularLimitedEnrolls.length >= newEnrollLimitField.reserveCount
+  if(noMoreRegularSpace && reserveCount != null && reserveCount <= spareEnrolls) {
+    throw new Error('Field limit reached')
+  } 
+  return noMoreRegularSpace
+ 
 }
 
 const getLimitedFieldIfEnrollMatch = (event, enroll) => {
@@ -77,17 +90,13 @@ const getLimitedFieldIfEnrollMatch = (event, enroll) => {
         .find(field =>
           field.options.find(option => option.name === value && option.reserveCount != null))
     )
-
-  // if(enrollKeyValue) {
-  //   const reserveCount = optionFields.find(field => field.options.find(option => option.name === enrollKeyValue[0] && option.reserveCount != null))
-  //   return [...enrollKeyValue, reserveCount]
-  // }
-  return enrollKeyValue || []
+  return enrollKeyValue || []
 }
 
 module.exports = {
   isEnrollPossible,
   determineIsSpare,
   hasStillLimits,
-  getLimitedFieldIfEnrollMatch
+  getLimitedFieldIfEnrollMatch,
+  getLimitedFields
 }

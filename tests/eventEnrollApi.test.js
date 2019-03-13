@@ -120,7 +120,7 @@ describe('Event enroll API', async () => {
           const dummyEnrolls = [
             { values: { etunimi: 'Name1', radio: 'option-a' } },
             { values: { etunimi: 'Name2', radio: 'option-a' } },
-            { values: { etunimi: 'Name3', radio: 'option-b' } },
+            { values: { etunimi: 'Name3', radio: 'option-a' } },
             { values: { etunimi: 'Name4', radio: 'option-b' } }
           ]
           const response400 = {
@@ -156,7 +156,7 @@ describe('Event enroll API', async () => {
             { values: { etunimi: 'Name2', radio: 'option-a' } },
             { values: { etunimi: 'Name3', radio: 'option-a' } }
           ]
-          // Event with id 2 has maxParticipant limit of 2 and one event previously inserted
+          // Event with id 2 has maxParticipant limit of 3 and one event with option-a previously inserted
           await api.post(`/api/events/${complexEventId}/enrolls`)
             .send(dummyEnrolls[0])
             .expect(201)
@@ -175,7 +175,6 @@ describe('Event enroll API', async () => {
               radio: 'option-a'
             }
           }
-          // Third enroll should fail
           const response = await api.post(`/api/events/${complexEventId}/enrolls`)
             .send(dummyEnrolls[2])
             .expect(201)

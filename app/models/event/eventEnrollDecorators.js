@@ -4,8 +4,9 @@ const moment = require('moment')
 const decoratePublic = eventEnroll => {
   const { event_enroll_id: id, event_id: eventId, event_enroll_data, fields } = eventEnroll
   const { isSpare, values = {}, createdAt } = event_enroll_data
-  const publicFields = filter(fields, 'public')
-  const publicValues = publicFields.reduce((acc, field) => ({ ...acc, [field.name]: values[field.name] }), {})
+  const publicValues = filter(fields, 'public')
+    .reduce((acc, field) =>
+      ({ ...acc, [field.name]: values[field.name] }), {})
   return {
     id,
     eventId,
