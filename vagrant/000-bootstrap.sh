@@ -30,5 +30,5 @@ echo "alias log='pm2 logs'" >> /home/vagrant/.bashrc
 echo "alias st='pm2 status'" >> /home/vagrant/.bashrc
 echo "alias rst='pm2 restart all'" >> /home/vagrant/.bashrc
 echo "alias rstl='pm2 restart all | pm2 logs'" >> /home/vagrant/.bashrc
-echo "alias db='psql -U digit -h localhost'" >> /home/vagrant/.bashrc
+echo "alias db='PGPASSWORD=digit psql -U digit -h localhost'" >> /home/vagrant/.bashrc
 echo "cd /vagrant" >> /home/vagrant/.bashrc
