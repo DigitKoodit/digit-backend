@@ -66,22 +66,23 @@ const determineIsSpare = (event, previousEnrolls, enroll) => {
       key,
       value: enroll.values[key],
       reserveCount: value[enroll.values[key]]
-    }))[0] // FIXME: currently allow only one limiting field
+    }))
+  return newEnrollLimitField.some(limitedField => {
+    // const spareLimitedEnrolls = spareEnrolls.filter(enroll =>
+    //   enroll.values[limitedField.key] === limitedField.value
+    // )
+    const regularLimitedEnrolls = regularEnrolls.filter(enroll =>
+      enroll.values[limitedField.key] === limitedField.value
+    )
+    const noFieldSpace = regularLimitedEnrolls.length >= limitedField.reserveCount
 
-  // const spareLimitedEnrolls = spareEnrolls.filter(enroll =>
-  //   enroll.values[newEnrollLimitField.key] === newEnrollLimitField.value
-  // )
-  const regularLimitedEnrolls = regularEnrolls.filter(enroll =>
-    enroll.values[newEnrollLimitField.key] === newEnrollLimitField.value
-  )
-  const noFieldSpace = regularLimitedEnrolls.length >= newEnrollLimitField.reserveCount
+    if(noFieldSpace && reserveCount != null && spareEnrolls.length >= reserveCount) {
+      throw new BadRequest('Field limit reached')
+    }
 
-  if(noFieldSpace && reserveCount != null && spareEnrolls.length >= reserveCount) {
-    throw new BadRequest('Field limit reached')
-  }
-
-  const noMoreRegularSpace = regularEnrolls.length >= maxParticipants
-  return noMoreRegularSpace || noFieldSpace
+    const noMoreRegularSpace = regularEnrolls.length >= maxParticipants
+    return noMoreRegularSpace || noFieldSpace
+  })
 
 }
 
