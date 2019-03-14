@@ -33,7 +33,7 @@ const findByIdToResultRow = (modelName, idField, findByIdAction) => (req, _, nex
         req.resultRowParent = req.resultRow
       }
       req.resultRow = resultRow
-      next()
+      return next()
     })
 }
 
