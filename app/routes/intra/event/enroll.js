@@ -6,7 +6,7 @@ const { decorate, decorateList, decoratePublic, decoratePublicList } = require('
 const { findById, findAll, save, remove, recalculateSpareEnrolls, recalculateSpareEnrollWithLimitedField } = require('../../../models/event/eventEnrollModel')
 const { decorate: decorateEvent } = require('../../../models/event/eventDecorators')
 const { findByIdToResultRow } = require('../../../helpers/helpers')
-const { isEnrollPossible, determineIsSpare, hasStillLimits, getLimitedFieldIfEnrollMatch } = require('../../../models/event/enrollHelpers')
+const { isEnrollPossible, determineIsSpare, hasStillLimits, getLimitedFieldIfEnrollMatch, hasLimitedFields } = require('../../../models/event/enrollHelpers')
 
 router.get('/', (req, res) =>
   findAll(req.db, req.params.eventId)
@@ -58,12 +58,15 @@ router.delete('/:eventEnrollId', (req, res) => {
       .then(removedResult => {
         // TODO: when and how to clear all spare spots?
         if(hasStillLimits(event)) {
-          const [fieldName, fieldValue] = getLimitedFieldIfEnrollMatch(event, removableEnroll)
-          if(fieldName) {
-            return recalculateSpareEnrollWithLimitedField(txDb, event.id, fieldName, fieldValue)
-              .then(result => {
-                return true
-              })
+          if(hasLimitedFields(event.fields)) {
+            const [fieldName, fieldValue] = getLimitedFieldIfEnrollMatch(event, removableEnroll)
+            if(fieldName) {
+              return recalculateSpareEnrollWithLimitedField(txDb, event.id, fieldName, fieldValue)
+                .then(result => {
+                  return true
+                })
+            }
+            return true
           }
         }
         return
