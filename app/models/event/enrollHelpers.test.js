@@ -188,6 +188,75 @@ describe('Enroll helpers', () => {
           determineIsSpare(simpleEvent, noRegularOrLimitSpaceLeftEnrolls, dummyEnroll))
           .toThrowError('Event is full')
       })
+      it('field limit optionC is full', () => {
+        let optionCLimitIsFull = [
+          { id: 1, isSpare: false, createdAt: mostEnrolledAt, values: { firstName: 'Name1', radio: 'optionC' } },
+          { id: 2, isSpare: false, createdAt: mostEnrolledAt, values: { firstName: 'Name2', radio: 'optionC' } },
+          { id: 3, isSpare: false, createdAt: mostEnrolledAt, values: { firstName: 'Name3', radio: 'optionB' } },
+          { id: 5, isSpare: false, createdAt: mostEnrolledAt, values: { firstName: 'Name3', radio: 'optionA' } },
+          { id: 6, isSpare: true, createdAt: mostEnrolledAt, values: { firstName: 'Name4', radio: 'optionC' } },
+          { id: 7, isSpare: true, createdAt: mostEnrolledAt, values: { firstName: 'Name5', radio: 'optionC' } },
+          { id: 7, isSpare: true, createdAt: mostEnrolledAt, values: { firstName: 'Name5', radio: 'optionC' } }
+        ]
+        let fieldLimitFullEvent = {
+          activeAt: eventActiveAt,
+          activeUntil: eventActiveUntil,
+          reservedUntil: eventReservedUntil,
+          maxParticipants: 5,
+          reserveCount: 3,
+          fields: [
+            {
+              id: 0,
+              name: 'firstName',
+              type: 'text',
+              label: 'FirstName',
+              public: true,
+              required: true,
+              fieldName: 'Teksti',
+              maxLength: 10,
+              isTextarea: false,
+              placeholder: null
+            },
+            {
+              id: 1,
+              name: 'radio',
+              type: 'radio',
+              label: 'Valinta',
+              public: true,
+              fieldName: 'Valinta',
+              required: true,
+              options: [
+                {
+                  name: 'optionA',
+                  label: 'OptionA',
+                  reserveCount: 30
+                },
+                {
+                  name: 'optionB',
+                  label: 'OptionB',
+                  value: false,
+                  reserveCount: 3
+                },
+                {
+                  name: 'optionC',
+                  label: 'OptionC',
+                  value: false,
+                  reserveCount: 2
+                }
+              ]
+            }
+          ]
+        }
+        let dummyCEnroll = {
+          values: {
+            firstName: 'Fuller',
+            radio: 'optionC'
+          }
+        }
+        expect(() =>
+          determineIsSpare(fieldLimitFullEvent, optionCLimitIsFull, dummyCEnroll))
+          .toThrowError('Field limit reached')
+      })
     })
     describe('Event has no field limits', () => {
       const reserveFreeEvent = {

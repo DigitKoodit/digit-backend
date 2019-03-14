@@ -68,18 +68,26 @@ const determineIsSpare = (event, previousEnrolls, enroll) => {
       reserveCount: value[enroll.values[key]]
     }))[0] // FIXME: currently allow only one limiting field
 
-  const spareLimitedEnrolls = spareEnrolls.filter(enroll =>
-    enroll.values[newEnrollLimitField.key] === newEnrollLimitField.value
-  )
+  // const spareLimitedEnrolls = spareEnrolls.filter(enroll =>
+  //   enroll.values[newEnrollLimitField.key] === newEnrollLimitField.value
+  // )
   const regularLimitedEnrolls = regularEnrolls.filter(enroll =>
     enroll.values[newEnrollLimitField.key] === newEnrollLimitField.value
   )
-  const noMoreRegularSpace = regularLimitedEnrolls.length >= newEnrollLimitField.reserveCount
-  if(noMoreRegularSpace && reserveCount != null && reserveCount <= spareEnrolls) {
-    throw new Error('Field limit reached')
-  } 
-  return noMoreRegularSpace
- 
+  const noFieldSpace = regularLimitedEnrolls.length >= newEnrollLimitField.reserveCount
+
+  if(noFieldSpace && reserveCount != null && spareEnrolls.length >= reserveCount) {
+    throw new BadRequest('Field limit reached')
+  }
+
+  const noMoreRegularSpace = regularEnrolls.length >= maxParticipants
+  return noMoreRegularSpace || noFieldSpace
+
+}
+
+const hasLimitedFields = fields => {
+  const limitedFields = getLimitedFields(fields)
+  return limitedFields && Object.values(limitedFields).filter(value => !!value).length
 }
 
 const getLimitedFieldIfEnrollMatch = (event, enroll) => {
@@ -98,5 +106,6 @@ module.exports = {
   determineIsSpare,
   hasStillLimits,
   getLimitedFieldIfEnrollMatch,
-  getLimitedFields
+  getLimitedFields,
+  hasLimitedFields
 }
