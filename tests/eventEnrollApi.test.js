@@ -471,7 +471,6 @@ describe('Event enroll API', async () => {
             await insertEnrolls(db, dummyEnrolls)
 
             const eventEnrollsAtStart = await eventEnrollsInDbByEvent(db, complexEventId)
-            console.log(eventEnrollsAtStart)
             const deletedEventEnroll = eventEnrollsAtStart[2]
             await api.delete(`/api/intra/events/${complexEventId}/enrolls/${deletedEventEnroll.id}`)
               .set('Authorization', jwtToken)
@@ -536,7 +535,6 @@ describe('Event enroll API', async () => {
             await insertEnrolls(db, dummyEnrolls)
 
             const eventEnrollsAtStart = await eventEnrollsInDbByEvent(db, complexEventId)
-            console.log(eventEnrollsAtStart)
             const deletedEventEnroll = eventEnrollsAtStart[2]
             await api.delete(`/api/intra/events/${complexEventId}/enrolls/${deletedEventEnroll.id}`)
               .set('Authorization', jwtToken)

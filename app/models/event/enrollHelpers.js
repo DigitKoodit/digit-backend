@@ -43,7 +43,6 @@ const determineIsSpare = (event, previousEnrolls, enroll) => {
   const eventParticipantLimit = maxParticipants + reserveCount
 
   if(previousEnrolls.length >= eventParticipantLimit) {
-    console.log('DING')
     throw new BadRequest('Event is full')
   }
 

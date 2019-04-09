@@ -415,7 +415,6 @@ describe('Enroll helpers', () => {
           optionC: 5
         }
       }
-      console.log(getLimitedFields(simpleEvent.fields))
       expect(getLimitedFields(simpleEvent.fields)).toEqual(expectedResult)
     })
     it('should return object with null values when fields does not have reserve count', () => {
