@@ -48,13 +48,34 @@ describe('Enroll helpers', () => {
           {
             name: 'optionA',
             label: 'OptionA',
-            reserveCount: 5
+            reserveCount: 4
           },
           {
             name: 'optionB',
             label: 'OptionB',
             value: false,
             reserveCount: 2
+          }
+        ]
+      }, {
+        id: 2,
+        name: 'radio2',
+        type: 'radio',
+        label: 'Valinta2',
+        public: true,
+        fieldName: 'Valinta2',
+        required: true,
+        options: [
+          {
+            name: 'optionC',
+            label: 'OptionC',
+            reserveCount: 5
+          },
+          {
+            name: 'optionD',
+            label: 'OptionD',
+            value: false,
+            reserveCount: null
           }
         ]
       }
@@ -387,14 +408,18 @@ describe('Enroll helpers', () => {
     it('should return event fields with options which has reservedCount', () => {
       const expectedResult = {
         radio: {
-          optionA: 5,
+          optionA: 4,
           optionB: 2
+        },
+        radio2: {
+          optionC: 5
         }
       }
+      console.log(getLimitedFields(simpleEvent.fields))
       expect(getLimitedFields(simpleEvent.fields)).toEqual(expectedResult)
     })
     it('should return object with null values when fields does not have reserve count', () => {
-      const expectedResult = { radio: null }
+      const expectedResult = { radio: {} }
       const event = {
         ...simpleEvent,
         fields: [

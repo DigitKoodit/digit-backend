@@ -1,5 +1,6 @@
 const moment = require('moment')
 const { BadRequest, Forbidden } = require('http-errors')
+const isEmpty = require('lodash/isEmpty')
 const { bifurcateBy } = require('../../helpers/helpers')
 
 const hasStillLimits = event => event.reservedUntil && moment(event.reservedUntil).isAfter(moment())
@@ -20,13 +21,13 @@ const isEnrollPossible = (event, previousEnrollResults) => {
   return true
 }
 
-const getLimitedFields = fields => fields.reduce((acc, field) =>
+const getLimitedFields = fields => fields.reduce((acc, field) => 
   field.options
     ? ({
       ...acc,
       [field.name]: field.options.reduce(reduceOptionReserveCounts, {})
     })
-    : null,
+    : acc,
   {})
 
 const reduceOptionReserveCounts = (acc, option) =>
@@ -35,13 +36,14 @@ const reduceOptionReserveCounts = (acc, option) =>
       ...acc,
       [option.name]: option.reserveCount
     })
-    : null
+    : acc
 
 const determineIsSpare = (event, previousEnrolls, enroll) => {
   const { fields, maxParticipants, reserveCount } = event
   const eventParticipantLimit = maxParticipants + reserveCount
 
   if(previousEnrolls.length >= eventParticipantLimit) {
+    console.log('DING')
     throw new BadRequest('Event is full')
   }
 
@@ -50,7 +52,7 @@ const determineIsSpare = (event, previousEnrolls, enroll) => {
   }
 
   const limitedFields = getLimitedFields(fields)
-  const hasLimitedFields = limitedFields && Object.values(limitedFields).filter(value => !!value).length
+  const hasLimitedFields = !isEmpty(limitedFields) && Object.values(limitedFields).filter(value => !!value).length
 
   const [spareEnrolls, regularEnrolls] = bifurcateBy(previousEnrolls, enroll => enroll.isSpare)
   if(!hasLimitedFields) {
@@ -88,7 +90,7 @@ const determineIsSpare = (event, previousEnrolls, enroll) => {
 
 const hasLimitedFields = fields => {
   const limitedFields = getLimitedFields(fields)
-  return limitedFields && Object.values(limitedFields).filter(value => !!value).length
+  return !isEmpty(limitedFields) && Object.values(limitedFields).filter(value => !!value).length
 }
 
 const getLimitedFieldIfEnrollMatch = (event, enroll) => {
