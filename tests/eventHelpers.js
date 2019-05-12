@@ -1,5 +1,33 @@
 const { decorateList } = require('../app/models/event/eventDecorators')
 
+// Can be copied to use in tests. Remember to add event_id
+const eventBaseData = {
+  name: 'Dummy event',
+  activeAt: '2019-01-01T12:00:00+02:00',
+  activeUntil: '2019-02-01T12:00:00+02:00',
+  reservedUntil: '2019-01-31T12:00:00+02:00',
+  isVisible: true,
+  isPublished: true,
+  maxParticipants: 10,
+  reserveCount: null,
+  description: `Event description`,
+  fields: [
+    {
+      id: 0,
+      name: 'etunimi',
+      label: 'Etunimi',
+      type: 'text',
+      placeholder: null,
+      maxLength: 64,
+      isTextarea: false,
+      fieldName: 'Teksti',
+      required: true,
+      public: true,
+      order: 0
+    }
+  ]
+}
+
 const initialEvents = [
   {
     event_id: 1,
@@ -9,6 +37,7 @@ const initialEvents = [
       activeUntil: '2019-02-01T12:00:00+02:00',
       reservedUntil: '2019-01-31T12:00:00+02:00',
       isVisible: true,
+      isPublished: true,
       maxParticipants: 10,
       reserveCount: null,
       description: `Event description`,
@@ -50,6 +79,7 @@ const initialEvents = [
       activeUntil: '2019-02-01T12:00:00+02:00',
       reservedUntil: '2019-01-31T12:00:00+02:00',
       isVisible: true,
+      isPublished: true,
       maxParticipants: 3,
       reserveCount: 1,
       description: `Second event description`,
@@ -94,8 +124,35 @@ const initialEvents = [
         }
       ]
     }
+  },
+  // Events with limited visibility
+  {
+    event_id: 3,
+    event_data: {
+      ...eventBaseData,
+      isVisible: false,
+      isPublished: false
+    }
+  },
+  {
+    event_id: 4,
+    event_data: {
+      ...eventBaseData,
+      isVisible: true,
+      isPublished: false
+    }
+  },
+  {
+    event_id: 5,
+    event_data: {
+      ...eventBaseData,
+      isVisible: false,
+      isPublished: true
+    }
   }
 ]
+
+
 
 const eventsInDb = db =>
   db.any('SELECT * FROM event ORDER BY event_id')
@@ -106,8 +163,8 @@ const insertInitialEvents = db =>
     t.batch(initialEvents.map(event => db.none(
       `INSERT INTO event (event_id, event_data) VALUES ($[event_id], $[event_data])`, event))
     )
-    // For some reason batch doesn't keep the order.. and therefore 
-    .then(() => t.none('ALTER SEQUENCE event_event_id_seq RESTART WITH 3')))
+      // For some reason batch doesn't keep the order.. and therefore 
+      .then(() => t.none('ALTER SEQUENCE event_event_id_seq RESTART WITH 6')))
 
 const removeAllFromDb = db => db.none('TRUNCATE TABLE event RESTART IDENTITY CASCADE')
 

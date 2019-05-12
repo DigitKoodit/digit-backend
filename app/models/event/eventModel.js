@@ -12,9 +12,22 @@ event.findById = (db, id) => {
       throw new NotFound('Event not found', error)
     })
 }
+
+event.findByIdPublic = (db, id) => {
+  if(!id) {
+    throw new NotFound('Event not found')
+  }
+  return db.one(`SELECT * FROM event WHERE event_id = $[id]
+      AND ((event_data->>'isVisible')::boolean OR (event_data->>'isPublished')::boolean)`,
+    { id, currentTime: moment().format() })
+    .catch(error => {
+      throw new NotFound('Event not found', error)
+    })
+}
+
 event.findAll = (db, activeOnly) => {
   return db.any(`SELECT * FROM event ${!isNil(activeOnly)
-    ? `WHERE (event_data->>'activeUntil')::timestamp > $[currentTime] AND (event_data->>'isVisible')::boolean IS TRUE`
+    ? `WHERE ((event_data->>'isVisible')::boolean OR (event_data->>'isPublished')::boolean)`
     : ''}`,
     { currentTime: moment().format() })
 }

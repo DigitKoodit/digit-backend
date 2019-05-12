@@ -28,6 +28,7 @@ const schema = {
   activeUntil: getStringValidator('Lopetuspäivämäärä'),
   reservedUntil: setIsOptional(getStringValidator('Kiintiöiden avautumispäivä')),
   isVisible: getBooleanValidator('Näkyvyys'),
+  isPublished: getBooleanValidator('Julkinen'),
   activeAt: getStringValidator('Aloituspäivämäärä'),
   maxParticipants: getIntValidator('Osallistumismäärä', { min: 1 }),
   reserveCount: setIsOptional(getIntValidator('Varasijat', { min: 0 })),

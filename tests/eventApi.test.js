@@ -1,23 +1,35 @@
 
+const lolex = require('lolex')
 const { db } = require('../db/pgp')
 const { initializeApi, closeApi, getJwtToken } = require('./testHelpers')
 const { insertInitialEvents, eventsInDb, removeAllFromDb } = require('./eventHelpers')
 let api
 let jwtToken
 const responseInvalidEventId = { message: 'Event id must be integer' }
+const responseSingmeEventNotFound = { message: 'Event not found' }
+let currentDate = '2019-01-30T12:00:00+02:00'
 
+let fakeClock
+const setDate = dateString => {
+  fakeClock = lolex.install({
+    now: new Date(dateString),
+    toFake: ['Date']
+  })
+}
 
 beforeAll(async () => {
   api = await initializeApi()
   jwtToken = await getJwtToken(db)
+  setDate(currentDate)
 })
 
 afterAll(() => {
   closeApi()
+  fakeClock.uninstall()
 })
 
 describe('Event API', async () => {
-  beforeAll(async () => {
+  beforeEach(async () => {
     // Truncates event table which removes enrolls too
     await removeAllFromDb(db)
   })
@@ -28,6 +40,37 @@ describe('Event API', async () => {
       const response = await api.get(`/api/events/${invalidEventId}`)
         .expect(400)
       expect(response.body).toEqual(responseInvalidEventId)
+    })
+  })
+
+  describe('Request events with limited visibility', async () => {
+    beforeEach(async () => {
+      // await removeAllFromDb(db)
+      await insertInitialEvents(db)
+    })
+
+    test('GET /api/events/:completelyHiddenEventId should return status 404', async () => {
+      const completelyHiddenEventId = 3
+      const response = await api.get(`/api/events/${completelyHiddenEventId}`)
+        .expect(404)
+        expect(response.body).toEqual(responseSingmeEventNotFound)
+    })
+
+    test('GET /api/events/:visibleNotPublicEventId should return status event', async () => {
+      const eventsAtStart = await eventsInDb(db)
+      console.log(eventsAtStart)
+      const visibleNotPublicEventId = 4
+      const response = await api.get(`/api/events/${visibleNotPublicEventId}`)
+        .expect(200)
+        expect(response.body).toEqual(eventsAtStart[3])
+    })
+
+    test('GET /api/events/:publicNotVisibleEventId should return status event', async () => {
+      const eventsAtStart = await eventsInDb(db)
+      const publicNotVisibleEventId = 5
+      const response = await api.get(`/api/events/${publicNotVisibleEventId}`)
+        .expect(200)
+        expect(response.body).toEqual(eventsAtStart[4])
     })
   })
 
@@ -64,7 +107,7 @@ describe('Event API', async () => {
 
     describe('Table event has values', async () => {
       beforeEach(async () => {
-        await removeAllFromDb(db)
+        // await removeAllFromDb(db)
         await insertInitialEvents(db)
       })
 
@@ -109,6 +152,7 @@ describe('Event API', async () => {
             activeUntil: '2019-01-22T13:00:00+02:00',
             activeAt: '2019-02-22T13:00:00+02:00',
             isVisible: true,
+            isPublished: true,
             maxParticipants: 30,
             reserveCount: 20
           }
@@ -168,6 +212,7 @@ describe('Event API', async () => {
             activeUntil: '2019-01-22T13:00:00+02:00',
             activeAt: '2019-02-22T13:00:00+02:00',
             isVisible: true,
+            isPublished: true,
             maxParticipants: 100,
             reserveCount: 50
           }

@@ -19,7 +19,7 @@ eventEnroll.findAll = (db, eventId, activeEventsOnly) =>
     LEFT JOIN event e ON e.event_id = ee.event_id
     WHERE e.event_id = $[eventId]
     ${!isNil(activeEventsOnly)
-      ? `AND (e.event_data->>'activeUntil')::timestamp > $[currentTime] AND (e.event_data->>'isVisible')::boolean IS TRUE`
+      ? `AND ((e.event_data->>'isVisible')::boolean OR (e.event_data->>'isPublished')::boolean)`
       : ''} ORDER BY event_enroll_id`,
     { eventId, currentTime: moment().format() })
 
