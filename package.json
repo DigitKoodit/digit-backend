@@ -10,6 +10,10 @@
   },
   "author": "niemisami",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/DigitKoodit/digit-backend"
+  },
   "dependencies": {
     "bluebird": "^3.5.3",
     "body-parser": "^1.18.3",
