@@ -1,0 +1,24 @@
+version: '3.5'
+
+services:
+  backend:
+    container_name: digit_backend
+    build:
+      context: ./
+      dockerfile: Dockerfile
+    volumes:
+      - ./app:/app
+    ports:
+      - '3001:3001'
+      - '9230:9230'
+    depends_on:
+      - db
+  db:
+    image: postgres
+    restart: always
+    environment:
+      POSTGRES_USER: digit
+      POSTGRES_PASSWORD: digit
+      POSTGRES_DB: digit_dev
+    ports:
+      - '5432:5432'
