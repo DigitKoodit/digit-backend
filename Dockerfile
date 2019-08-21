@@ -1,9 +1,9 @@
-FROM node:10.15.1
+FROM node:latest
 RUN yarn global add pm2 node-pre-gyp
 
 
-WORKDIR /
-ADD ./ /
+WORKDIR /app
+ADD ./ /app
 
 ADD package.json package.json
 

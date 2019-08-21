@@ -2,7 +2,7 @@
 
 # Digit - Backend
 
-Node backend for handling student organization Digit website. 
+Node backend for handling student organization Digit website.
 
 ## Installing / Getting started
 
@@ -13,7 +13,7 @@ Node backend for handling student organization Digit website.
 ```shell
 git clone <your fork url>/digit-backend
 cd digit-backend
-nvm use 
+nvm use
 vagrant up
 ```
 
@@ -29,11 +29,11 @@ Vagrant creates Ubuntu 18 virtual machine and installs postgres and other depend
 
 Open development environment within Vagrant:
 
-`vagrant ssh default` 
+`vagrant ssh default`
 
-*replace `default` with `wsl` if using Windows Subsystem for Linux* 
+_replace `default` with `wsl` if using Windows Subsystem for Linux_
 
-Project codes are located on `/vagrant` folder which opens automatically after SSH-connection. 
+Project codes are located on `/vagrant` folder which opens automatically after SSH-connection.
 
 **Shell aliases**
 
@@ -61,14 +61,13 @@ PORT=3001
 TEST_PORT=3031
 ```
 
-
-#### Integration tests 
+#### Integration tests
 
 Integration tests are located in `/tests` folder on project root which tests API-endpoints. All tests that requires API must run `initializeApi` before all and `closeApi` after all tests. These functions intialized server with help of `supertest` library and are located on `testHelpers.js` file.
 
-If tests fail and error output is needed, comment out `console.error(...)` on `./app/index.js` error handler (last function).  
+If tests fail and error output is needed, comment out `console.error(...)` on `./app/index.js` error handler (last function).
 
-#### Unit tests 
+#### Unit tests
 
 Write unit tests next to a testable component if possible.
 
@@ -78,11 +77,11 @@ Production server has a bare git repo which allows making pushes directly to it 
 
 ## Features
 
-* JWT authentication/registration
-* Static Markdown/HTML page content
-* Sponsors
-* Navigation
-* File upload
+- JWT authentication/registration
+- Static Markdown/HTML page content
+- Sponsors
+- Navigation
+- File upload
 
 ## Configuration
 
@@ -96,7 +95,7 @@ TODO
 
     git clone git@github.com:YOUR-USERNAME/digit-backend.git
 
-### 2. Add remote from original repository in your forked repository: 
+### 2. Add remote from original repository in your forked repository:
 
     cd into/cloned/fork-repo
     git remote add upstream git://github.com/digitkoodit/digit-backend.git
@@ -107,9 +106,10 @@ TODO
     git pull upstream master
 
 ### 4. Making your own changes
+
     git push origin master
 
-### 5. Make a pull request on GitHub 
+### 5. Make a pull request on GitHub
 
 ## Links
 
