@@ -76,3 +76,7 @@ typings/
 # File upload directories
 /uploads
 /uploads_test
+
+*.pm2
+.ash_history
+.config/
