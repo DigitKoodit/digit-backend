@@ -2,8 +2,8 @@ module.exports = {
   apps: [
     {
       name: 'digit',
-      script: '/vagrant/bin/index.js',
-      cwd: '/vagrant/',
+      script: '/home/node/bin/index.js',
+      cwd: '/home/node',
       exec_mode: 'fork',
       watch: ['./app/**/*.js'],
       watch_options: {
@@ -15,9 +15,10 @@ module.exports = {
         PORT: 3001,
         TEST_PORT: 3031,
         TEST_JWT_TOKEN: '6KVLFMDQJ1',
-        TEST_SECRET_KEY: 'UA08KVNXRKBY0B6793BW'
+        TEST_SECRET_KEY: 'UA08KVNXRKBY0B6793BW',
+        PGHOST: 'db'
       },
       node_args: '--inspect=0.0.0.0:9230'
     }
   ]
-}
+};
