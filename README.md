@@ -1,54 +1,44 @@
-![Logo of the project](https://digit.fi/images/site/logo_screen_new.gif)
-
 # Digit - Backend
 
 Node backend for handling student organization Digit website. 
 
+## IMPORTANT UPDATE
+
+We have changed from Vagrant to Docker.
+
+**TODO**: Update instructions
+
 ## Installing / Getting started
 
-1. Install VirtualBox
-2. Install latest Vagrant version (tested with 2.0.3)
-3. Install/ensure Node/NPM is installed (prefer NVM)
+1. Install Docker
 
 ```shell
 git clone <your fork url>/digit-backend
 cd digit-backend
-nvm use 
-vagrant up
+docker-compose up
 ```
 
-Vagrant creates Ubuntu 18 virtual machine and installs postgres and other dependencies required on the project. See [Vagrantfile](./Vagrantfile)
-
-**NOTE** If using Linux subsystem for Windows instead of `vagrant up` run `vagrant up wsl`. The command starts vagrant with proper configs.
-
-### Initial Configuration
-
-(Use VScode)
+Docker creates two containers, database and the node app and everything is controlled by docker so no need to install `npm` on host.
 
 ## Developing
 
-Open development environment within Vagrant:
+Launch containers and start developing. `Pm2` will take care of reloading application whenever files are changed. Recommended not to use too frequent auto save function on editor. 
 
-`vagrant ssh default` 
+**Docker commands**
 
-*replace `default` with `wsl` if using Windows Subsystem for Linux* 
+Open database\
+`docker exec -it digit_db psql -U digit -h localhost digit_dev`
+Show logs\
+`docker container logs -f digit_db|digit_backend`
+Run bash commands from host terminal against running container:\
+`docker exec digit_backend ps`
 
-Project codes are located on `/vagrant` folder which opens automatically after SSH-connection. 
-
-**Shell aliases**
-
-> Following aliases are added to `~/.bashrc` during Vagrant initialization
-
-| Command | Action                      | Notes                                                    |
-| ------- | --------------------------- | -------------------------------------------------------- |
-| st      | pm2 status                  |                                                          |
-| log     | pm2 logs                    |                                                          |
-| rst     | pm2 restart all             |                                                          |
-| rstl    | pm2 restart all \| pm2 logs |                                                          |
-| db      | psql -U digit -h localhost  | Add name of the database after alias e.g. `db digit_dev` |
+Open a bash session on a running container:\
+`docker container exec -it digit_backend /bin/sh`
 
 ### Testing
 
+**NOTE!** Does not work on docker yet
 Run `npm test`
 
 > Running cli options requires two dashes between npm script and `Jest` command: `npm test -- <command>`
@@ -60,7 +50,6 @@ Ensure `.env` file is present in the project root and contains atleast following
 PORT=3001
 TEST_PORT=3031
 ```
-
 
 #### Integration tests 
 
