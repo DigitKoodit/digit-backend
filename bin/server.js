@@ -43,29 +43,25 @@ const migrateAndStartServer = () =>
       process.exit(1)
     })
 
-// const gracefulShutdown = () => {
-//   console.log('Received kill signal, shutting down gracefully.')
-//   server.close(() => {
-//     console.log('SIG PGP OBJECT', pgp)
-//     db.proc('version')
-//       .then((data) => {
-//         console.log('SIG CONNECTION ACTIVE', data)
-//       })
-//       .catch(error => {
-//         console.log('SIG ERROR', error)
-//       })
-//     process.exit(0)
-//   })
-//   setTimeout(() => {
-//     console.error('Could not close connections in time, forcefully shutting down')
-//     process.exit(0)
-//   }, 10 * 1000)
-// }
+const gracefulShutdown = () => {
+  console.log('Received kill signal, shutting down gracefully.')
+  server.close(() => {
+    db.proc('version')
+      .then((data) => {
+        console.log('SIG CONNECTION ACTIVE', data)
+      })
+      .catch(error => {
+        console.log('SIG ERROR', error)
+      })
+    process.exit(0)
+  })
+  setTimeout(() => {
+    console.error('Could not close connections in time, forcefully shutting down')
+    process.exit(0)
+  }, 10 * 1000)
+}
 
-// // TERM signal e.g. kill
-// process.on('SIGTERM', gracefulShutdown)
-// // TERM signal e.g. ctrl + c
-// process.on('SIGINT', gracefulShutdown)
+process.on('SIGINT', gracefulShutdown)
 
 module.exports = {
   startServer,
