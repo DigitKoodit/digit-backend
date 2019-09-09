@@ -12,13 +12,33 @@ We have changed from Vagrant to Docker.
 
 1. Install Docker
 
+Instructions from [here](https://runnable.com/docker/getting-started/) and Google
+
+2. Fork the project on [GitHub](https://help.github.com/en/articles/fork-a-repo)
+
+3. Clone the project
+
 ```shell
 git clone <your fork url>/digit-backend
 cd digit-backend
+```
+
+4. Optional: Moving from Vagrant to Docker
+
+Delete the Vagrant image from VirtualBox.\
+Remove `.vagrant` folder on the project root
+Remove `ubuntu-bionic_*.cloudimg-console.log` file
+Remove both `applied_*.json` files from `/migrations` folder
+
+5. Start developing
+
+```
 docker-compose up
 ```
 
 Docker creates two containers, database and the node app and everything is controlled by docker so no need to install `npm` on host.
+
+
 
 ## Developing
 
@@ -134,6 +154,7 @@ Example of how to create a new feature/fix
 
 - [Jest](https://jestjs.io/docs/en/getting-started)
 - [create-react-app](https://github.com/facebook/create-react-app)
+- [Lessons From Building Node Apps in  Docker](https://jdlm.info/articles/2019/09/06/lessons-building-node-app-docker.html)
 
 ## Licensing
 
