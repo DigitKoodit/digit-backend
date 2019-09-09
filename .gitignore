@@ -67,7 +67,7 @@ typings/
 
 .DS_Store
 
-.vscode/
+/.vscode/*
 !/.vscode/launch.json
 !/.vscode/settings.json
 
@@ -77,6 +77,6 @@ typings/
 /uploads
 /uploads_test
 
-*.pm2
+.pm2
 .ash_history
-.config/
+.config
