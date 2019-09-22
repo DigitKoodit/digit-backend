@@ -38,8 +38,6 @@ docker-compose up
 
 Docker creates two containers, database and the node app and everything is controlled by docker so no need to install `npm` on host.
 
-
-
 ## Developing
 
 Launch containers and start developing. `Pm2` will take care of reloading application whenever files are changed. Recommended not to use too frequent auto save function on editor. 
@@ -58,18 +56,16 @@ Open a bash session on a running container:\
 
 ### Testing
 
-**NOTE!** Does not work on docker yet
-Run `npm test`
+Testing can be performed by starting additional test container:\
+`docker-compose -f docker-compose-test.yaml up -d`
+
+Run tests:\
+`docker container exec -it digit_backend_test npm test`
 
 > Running cli options requires two dashes between npm script and `Jest` command: `npm test -- <command>`
 > See Jest's [documents](https://jestjs.io/docs/en/cli.html) page
 
-Ensure `.env` file is present in the project root and contains atleast following keys. These defaults are set on `digit_dev.config.js`
-
-```
-PORT=3001
-TEST_PORT=3031
-```
+Test container creates own database and launches container on background.
 
 #### Integration tests 
 
@@ -158,4 +154,4 @@ Example of how to create a new feature/fix
 
 ## Licensing
 
-"The code in this project is licensed under [MIT license.](/LICENSE)"
+The code in this project is licensed under [MIT license.](/LICENSE)
