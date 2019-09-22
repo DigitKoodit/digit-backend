@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "start": "node ./bin/index.js",
-    "test": "NODE_ENV=test jest  --runInBand --watch",
+    "test": "NODE_ENV=test jest  --runInBand --watchAll",
     "lint": "estlint ./app"
   },
   "author": "niemisami",
@@ -50,7 +50,7 @@
     "eslint-plugin-node": "^6.0.1",
     "eslint-plugin-promise": "^3.8.0",
     "eslint-plugin-standard": "^3.1.0",
-    "jest": "^24.1.0",
+    "jest": "^24.9.0",
     "lolex": "^3.0.0",
     "rimraf": "^2.6.3",
     "supertest": "^3.4.2"

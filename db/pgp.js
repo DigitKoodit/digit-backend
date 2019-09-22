@@ -33,7 +33,7 @@ const getDbName = () => {
 
 const connectionOptions = {
   user: process.env.PGUSER || 'digit',
-  host: process.env.PGHOST || 'localhost',
+  host: process.env.PGHOST || 'db',
   password: process.env.PGPASSWORD || 'digit',
   database: getDbName(),
   port: process.env.PGPORT || 5432

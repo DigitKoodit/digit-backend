@@ -1,0 +1,32 @@
+version: '3.5'
+
+services:
+  backend:
+    container_name: digit_backend_test
+    build:
+      context: ./
+      dockerfile: Dockerfile.test
+    stdin_open: true
+    tty: true
+    volumes:
+      - .:/home/node
+      - /home/node/node_modules
+    depends_on:
+      - db
+    environment:
+      NODE_ENV: test
+      TEST_PORT: '3031'
+      TEST_JWT_TOKEN: 6KVLFMDQJ1
+      TEST_SECRET_KEY: UA08KVNXRKBY0B6793BW
+      PG_PORT: '5433'
+    command: /bin/sh -c "node db/migrate-up && tail -f /dev/null"
+  db:
+    image: postgres
+    container_name: digit_db_test
+    restart: always
+    environment:
+      POSTGRES_USER: digit
+      POSTGRES_PASSWORD: digit
+      POSTGRES_DB: digit_testing
+    ports:
+      - '5433:5432'
