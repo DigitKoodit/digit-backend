@@ -16,21 +16,21 @@ afterAll(() => {
   closeApi()
 })
 
-describe('File API', async () => {
+describe('File API', () => {
   beforeAll(async () => {
     await removeAllFromDb(db)
   })
 
-  describe('User is not authenticated', async () => {
-   test('GET /api/intra/files should return status 401', async () => {
-      return api.get('/api/intra/files')
+  describe('User is not authenticated', () => {
+    test('GET /api/intra/files should return status 401', () => {
+      api.get('/api/intra/files')
         .expect(401)
     })
   })
 
-  describe('user is authenticated', async () => {
-    describe('Table file is empty', async () => {
-     test('GET /api/intra/files should return status 200 and empty array', async () => {
+  describe('user is authenticated', () => {
+    describe('Table file is empty', () => {
+      test('GET /api/intra/files should return status 200 and empty array', async () => {
         const response = await api.get('/api/intra/files')
           .set('Authorization', jwtToken)
           .expect(200)
@@ -40,13 +40,13 @@ describe('File API', async () => {
       })
     })
 
-    describe('Table file has values', async () => {
+    describe('Table file has values', () => {
 
       beforeAll(async () => {
         await insertInitialFiles(db)
       })
 
-     test('GET /api/intra/files should return status 200 and values', async () => {
+      test('GET /api/intra/files should return status 200 and values', async () => {
         const filesAtStart = await filesInDb(db)
         const response = await api.get('/api/intra/files')
           .set('Authorization', jwtToken)
@@ -56,12 +56,12 @@ describe('File API', async () => {
         expect(response.body).toEqual(expect.arrayContaining(filesAtStart))
       })
 
-      describe('File upload', async () => {
+      describe('File upload', () => {
         afterEach(async () => {
           await clearUploadsTestFolder()
         })
         // Multiple files can be uploaded simultaneously therefore response returns created files in an array
-       test('POST /api/intra/files/uploads uploads file to uploads_test folder', async () => {
+        test('POST /api/intra/files/uploads uploads file to uploads_test folder', async () => {
           const filesAtStart = await filesInDb(db)
           const testFilePath = path.join(__dirname, 'assets', 'suomi_talvella.jpg')
           const response = await api.post('/api/intra/files/uploads')
@@ -76,7 +76,7 @@ describe('File API', async () => {
         })
       })
 
-     test('PUT /api/intra/files update file description return 200 and updated value', async () => {
+      test('PUT /api/intra/files update file description return 200 and updated value', async () => {
         const filesAtStart = await filesInDb(db)
         const updatedFirstFile = {
           ...filesAtStart[0],
@@ -89,7 +89,7 @@ describe('File API', async () => {
         expect(response.body.description).toBe(updatedFirstFile.description)
       })
 
-     test('DELETE /api/intra/files delete file return 204', async () => {
+      test('DELETE /api/intra/files delete file return 204', async () => {
         const filesAtStart = await filesInDb(db)
         const deletedFile = filesAtStart[0]
         await api.delete(`/api/intra/files/${deletedFile.id}`)

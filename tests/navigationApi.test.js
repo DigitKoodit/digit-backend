@@ -16,14 +16,14 @@ afterAll(() => {
   closeApi()
 })
 
-describe('Navigation API', async () => {
+describe('Navigation API', () => {
   beforeAll(async () => {
     await removeAllFromDb(db)
   })
 
-  describe('User is not authenticated', async () => {
+  describe('User is not authenticated', () => {
     test('GET /api/intra/navigation should return status 401', async () => {
-      return api.get('/api/intra/navigation')
+       api.get('/api/intra/navigation')
         .expect(401)
     })
     test('GET /api/intra/navigation should return status 200 and values', async () => {
@@ -37,8 +37,8 @@ describe('Navigation API', async () => {
     })
   })
 
-  describe('User is authenticated', async () => {
-    describe('Authorized but invalid request params', async () => {
+  describe('User is authenticated', () => {
+    describe('Authorized but invalid request params', () => {
       test('GET /api/intra/navigation/:invalidNavItemId should return status 400', async () => {
         const invalidNavItemId = 'INVALID_ID'
         const response = await api.get(`/api/intra/navigation/${invalidNavItemId}`)
@@ -49,7 +49,7 @@ describe('Navigation API', async () => {
       })
     })
 
-    describe('Table navItem is empty', async () => {
+    describe('Table navItem is empty',  () => {
       test('GET /api/intra/navigation should return status 200 and empty array', async () => {
         const response = await api.get('/api/intra/navigation')
           .set('Authorization', jwtToken)
@@ -60,7 +60,7 @@ describe('Navigation API', async () => {
       })
     })
 
-    describe('Table navItem has values', async () => {
+    describe('Table navItem has values', () => {
       beforeEach(async () => {
         await removeAllFromDb(db)
         await insertInitialNavItems(db)
@@ -77,7 +77,7 @@ describe('Navigation API', async () => {
         expect(response.body).toEqual(expect.arrayContaining(navItemsAtStart))
       })
 
-      describe('Navigation manipulation', async () => {
+      describe('Navigation manipulation', () => {
         test('POST /api/intra/navigation creates new navItem', async () => {
           const navItemsAtStart = await navItemsInDb(db)
           const newNavItem = {

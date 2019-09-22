@@ -20,6 +20,7 @@ const getJwtToken = async (db) => {
   const user = await insertDefaultRolesAndAdmin(db)
   const token = await generateJwtToken(user)
   const jwtToken = `Bearer ${token}`
+  console.log('TOKEN SET')
   return jwtToken
 }
 const responseCommon404 = { message: 'Not Found' }

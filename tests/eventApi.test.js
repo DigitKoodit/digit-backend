@@ -28,13 +28,13 @@ afterAll(() => {
   fakeClock.uninstall()
 })
 
-describe('Event API', async () => {
+describe('Event API', () => {
   beforeEach(async () => {
     // Truncates event table which removes enrolls too
     await removeAllFromDb(db)
   })
 
-  describe('Invalid request params', async () => {
+  describe('Invalid request params', () => {
     test('GET /api/events/:invalidEventId should return status 400', async () => {
       const invalidEventId = 'INVALID_ID'
       const response = await api.get(`/api/events/${invalidEventId}`)
@@ -43,7 +43,7 @@ describe('Event API', async () => {
     })
   })
 
-  describe('Request events with limited visibility', async () => {
+  describe('Request events with limited visibility', () => {
     beforeEach(async () => {
       // await removeAllFromDb(db)
       await insertInitialEvents(db)
@@ -75,16 +75,16 @@ describe('Event API', async () => {
   })
 
 
-  describe('User is not authenticated', async () => {
+  describe('User is not authenticated', () => {
     test('GET /api/intra/events should return status 401', async () => {
-      return api.get('/api/intra/events')
+       api.get('/api/intra/events')
         .expect(401)
     })
   })
 
-  describe('User is authenticated', async () => {
+  describe('User is authenticated', () => {
 
-    describe('Authorized but invalid request params', async () => {
+    describe('Authorized but invalid request params', () => {
       test('GET /api/intra/events/:invalidEventId should return status 400', async () => {
         const invalidEventId = 'INVALID_ID'
         const response = await api.get(`/api/intra/events/${invalidEventId}`)
@@ -94,7 +94,7 @@ describe('Event API', async () => {
       })
     })
 
-    describe('Table event is empty', async () => {
+    describe('Table event is empty', () => {
       test('GET /api/intra/events should return status 200 and empty array', async () => {
         const response = await api.get('/api/intra/events')
           .set('Authorization', jwtToken)
@@ -105,7 +105,7 @@ describe('Event API', async () => {
       })
     })
 
-    describe('Table event has values', async () => {
+    describe('Table event has values', () => {
       beforeEach(async () => {
         // await removeAllFromDb(db)
         await insertInitialEvents(db)
@@ -121,7 +121,7 @@ describe('Event API', async () => {
         expect(response.body).toEqual(expect.arrayContaining(eventsAtStart))
       })
 
-      describe('Event manipulation', async () => {
+      describe('Event manipulation', () => {
         test('POST /api/intra/events creates new event', async () => {
           const eventsAtStart = await eventsInDb(db)
           const newEvent = {

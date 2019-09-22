@@ -15,12 +15,12 @@ afterAll(() => {
   closeApi()
 })
 
-describe('Site page API', async () => {
+describe('Site page API', () => {
   beforeAll(async () => {
     await removeAllFromDb(db)
   })
 
-  describe('Invalid request params', async () => {
+  describe('Invalid request params', () => {
     test('GET /api/pages/:invalidSitePageId should return status 400', async () => {
       const invalidSitePageId = 'INVALID_ID'
       const response = await api.get(`/api/pages/${invalidSitePageId}`)
@@ -30,15 +30,15 @@ describe('Site page API', async () => {
     })
   })
 
-  describe('User is not authenticated', async () => {
+  describe('User is not authenticated', () => {
     test('GET /api/intra/pages should return status 401', async () => {
-      return api.get('/api/intra/pages')
+     api.get('/api/intra/pages')
         .expect(401)
     })
   })
 
-  describe('User is authenticated', async () => {
-    describe('Authorized but invalid request params', async () => {
+  describe('User is authenticated', () => {
+    describe('Authorized but invalid request params', () => {
       test('GET /api/intra/pages/:invalidSitePageId should return status 400', async () => {
         const invalidSitePageId = 'INVALID_ID'
         const response = await api.get(`/api/intra/pages/${invalidSitePageId}`)
@@ -49,7 +49,7 @@ describe('Site page API', async () => {
       })
     })
 
-    describe('Table sitePage is empty', async () => {
+    describe('Table sitePage is empty', () => {
       test('GET /api/intra/pages should return status 200 and empty array', async () => {
         const response = await api.get('/api/intra/pages')
           .set('Authorization', jwtToken)
@@ -60,7 +60,7 @@ describe('Site page API', async () => {
       })
     })
 
-    describe('Table sitePage has values', async () => {
+    describe('Table sitePage has values', () => {
       beforeEach(async () => {
         await removeAllFromDb(db)
         await insertInitialSitePages(db)
@@ -77,7 +77,7 @@ describe('Site page API', async () => {
         expect(response.body).toEqual(expect.arrayContaining(sitePagesAtStart))
       })
 
-      describe('SitePage manipulation', async () => {
+      describe('SitePage manipulation', () => {
         test('POST /api/intra/pages creates new sitePage', async () => {
           const sitePagesAtStart = await sitePagesInDb(db)
           const newSitePage = {

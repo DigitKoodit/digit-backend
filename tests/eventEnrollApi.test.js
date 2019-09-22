@@ -38,7 +38,7 @@ afterAll(() => {
   fakeClock.uninstall()
 })
 
-describe('Event enroll API', async () => {
+describe('Event enroll API', () => {
   beforeAll(async () => {
     // Truncates eventEnroll table which removes eventEnrolls too
     await removeAllFromDb(db)
@@ -46,10 +46,10 @@ describe('Event enroll API', async () => {
     await insertInitialEvents(db)
   })
 
-  describe('Public API', async () => {
+  describe('Public API', () => {
     let getPublic = true
 
-    describe(`Event doesn't exists`, async () => {
+    describe(`Event doesn't exists`, () => {
       test('GET /api/events/:eventId/enrolls with non existing event id should return status 404', async () => {
         const nonExistingEventId = 10101
         const eventNotFoundResponse = { message: 'Event not found' }
@@ -59,7 +59,7 @@ describe('Event enroll API', async () => {
       })
     })
 
-    describe('Event exists but no enrolls', async () => {
+    describe('Event exists but no enrolls', () => {
       test('GET /api/events/:eventId/enrolls should return status 200 and empty array ', async () => {
         const response = await api.get(`/api/events/${eventId}/enrolls`)
           .set('Authorization', jwtToken)
@@ -69,7 +69,7 @@ describe('Event enroll API', async () => {
       })
     })
 
-    describe('Table event_enroll has values', async () => {
+    describe('Table event_enroll has values', () => {
       beforeEach(async () => {
         await removeAllFromDb(db)
         await insertInitialEventEnrolls(db)
@@ -85,7 +85,7 @@ describe('Event enroll API', async () => {
       })
 
 
-      describe(`Trying to enroll to a non existing event`, async () => {
+      describe(`Trying to enroll to a non existing event`, () => {
         test('POST /api/events/:eventId/enrolls', async () => {
           const response404Event = { message: 'Event not found' }
           const nonExistingEventId = 10101
@@ -96,7 +96,7 @@ describe('Event enroll API', async () => {
         })
       })
 
-      describe(`Enrolling to an event`, async () => {
+      describe(`Enrolling to an event`, () => {
         test('POST /api/events/:complexEventId/enrolls creates new eventEnroll', async () => {
           const eventEnrollsAtStart = await eventEnrollsInDb(db)
           const newEventEnroll = {
@@ -259,17 +259,17 @@ describe('Event enroll API', async () => {
     })
   })
 
-  describe('Private API', async () => {
-    describe('User is not authenticated', async () => {
+  describe('Private API',  () => {
+    describe('User is not authenticated',  () => {
       test('GET /api/intra/events/:eventId/enrolls should return status 401', async () => {
         const response = await api.get(`/api/intra/events/${eventId}/enrolls`)
           .expect(401)
       })
     })
 
-    describe('User is authenticated', async () => {
+    describe('User is authenticated',  () => {
 
-      describe('Authorized but invalid request params', async () => {
+      describe('Authorized but invalid request params', () => {
         test('PUT /api/intra/events/:eventId/enrolls/:invalidEventEnrollId should return status 400', async () => {
           const invalidEventEnrollId = 'INVALID_ID'
           const response = await api.put(`/api/intra/events/${eventId}/enrolls/${invalidEventEnrollId}`)
@@ -279,7 +279,7 @@ describe('Event enroll API', async () => {
         })
       })
 
-      describe('Table eventEnroll is empty', async () => {
+      describe('Table eventEnroll is empty',  () => {
         beforeEach(async () => {
           await removeAllFromDb(db)
         })
@@ -293,7 +293,7 @@ describe('Event enroll API', async () => {
         })
       })
 
-      describe('Table event_enroll has values', async () => {
+      describe('Table event_enroll has values', () => {
         beforeEach(async () => {
           await removeAllFromDb(db)
           await insertInitialEventEnrolls(db)
@@ -309,7 +309,7 @@ describe('Event enroll API', async () => {
           expect(response.body).toEqual(expect.arrayContaining(eventEnrollsAtStart))
         })
 
-        describe('Event enroll manipulation', async () => {
+        describe('Event enroll manipulation', () => {
           test('POST /api/intra/events/:eventId/enrolls creates new eventEnroll', async () => {
             const eventEnrollsAtStart = await eventEnrollsInDb(db)
             const newEventEnroll = {
