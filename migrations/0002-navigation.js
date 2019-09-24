@@ -11,7 +11,8 @@ const insertNavitems = {
       isCustom: true,
       isVisible: true
     }
-  }, {
+  },
+  {
     parentId: null,
     sitePageId: null,
     data: {
@@ -21,7 +22,19 @@ const insertNavitems = {
       isCustom: true,
       isVisible: true
     }
-  }, {
+  },
+  {
+    parentId: null,
+    sitePageId: null,
+    data: {
+      path: '/ilmo',
+      title: 'Ilmoittaudu',
+      weight: 2,
+      isCustom: true,
+      isVisible: true
+    }
+  },
+  {
     parentId: 2,
     sitePageId: 1,
     data: {
