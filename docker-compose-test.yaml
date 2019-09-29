@@ -2,13 +2,13 @@ version: '3.5'
 
 services:
   backendtest:
-    container_name: digit_backend_test
+    container_name: digit_backend_test  
     build:
       context: ./
       dockerfile: Dockerfile-test
     volumes:
       - .:/home/node
-      - /home/node/node_modules
+      - nodemodulestest:/home/node/node_modules
     depends_on:
       - dbtest
     networks: 
@@ -19,7 +19,7 @@ services:
       TEST_JWT_TOKEN: 6KVLFMDQJ1
       TEST_SECRET_KEY: UA08KVNXRKBY0B6793BW
       PGHOST: dbtest
-    command: /bin/sh -c "node db/migrate-up && npm test"
+    command: /bin/sh -c "node db/migrate-up && tail -f /dev/null"
   dbtest:
     image: postgres
     container_name: digit_db_test
@@ -33,3 +33,6 @@ services:
 
 networks:
   dbtest:
+
+volumes:
+  nodemodulestest:
