@@ -88,7 +88,8 @@ describe('Navigation API', async () => {
             isCustom: false,
             weight: 0,
             showOnNavigation: true,
-            isPublished: true
+            isPublished: true,
+            isEmphasized: false
           }
           const response = await api.post('/api/intra/navigation')
             .set('Authorization', jwtToken)
@@ -115,7 +116,8 @@ describe('Navigation API', async () => {
             isCustom: false,
             weight: 0,
             showOnNavigation: true,
-            isPublished: true
+            isPublished: true,
+            isEmphasized: false
           }
 
           const response = await api.put(`/api/intra/navigation/${updatedFirstNavItem.id}`)

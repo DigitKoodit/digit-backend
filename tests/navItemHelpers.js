@@ -11,7 +11,8 @@ const initialNavItems = [
       isCustom: false,
       weight: 0,
       showOnNavigation: true,
-      isPublished: true
+      isPublished: true,
+      isEmphasized: false
     }
   }
 ]
