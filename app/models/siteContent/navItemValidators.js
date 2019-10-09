@@ -19,7 +19,8 @@ const schema = {
   sitePageId: setIsOptional(getIntValidator('Sisältötunniste')),
   weight: getIntValidator('Paino', { min: 0 }),
   showOnNavigation: getBooleanValidator('Näkyvyys'),
-  isPublished: getBooleanValidator('Julkaistu')
+  isPublished: getBooleanValidator('Julkaistu'),
+  isEmphasized: getBooleanValidator('Korostettu valikossa')
 }
 
 const validateCreate = () =>
