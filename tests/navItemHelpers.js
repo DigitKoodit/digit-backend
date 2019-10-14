@@ -21,7 +21,7 @@ const selectAllSql = 'SELECT * FROM nav_item ORDER BY nav_item_id'
 const selectPublicSql = `SELECT * FROM nav_item 
   WHERE (nav_item_data->>'isPublished')::boolean = true
   ORDER BY nav_item_id`
-  
+
 const navItemsInDb = (db, getPublished) =>
   db.any(getPublished ? selectPublicSql : selectAllSql)
     .then(decorateList)

@@ -4,12 +4,12 @@
 const { db } = require('../db/pgp')
 const { initializeApi, closeApi, getJwtToken } = require('./testHelpers')
 // Remember to create test helper for the model
-const { insertInitialItems, itemsInDb, removeAllFromDb } = require('./itemHelpers') 
+const { insertInitialItems, itemsInDb, removeAllFromDb } = require('./itemHelpers')
 let api
 let jwtToken
 const responseInvalidItemId = { message: 'Item id must be integer' }
 
-beforeAll(async () => {
+beforeAll(async() => {
   api = await initializeApi()
   jwtToken = await getJwtToken(db)
 })
@@ -18,13 +18,13 @@ afterAll(() => {
   closeApi()
 })
 
-describe('Item API', async () => {
-  beforeAll(async () => {
+describe('Item API', async() => {
+  beforeAll(async() => {
     await removeAllFromDb(db)
   })
 
-  describe('Invalid request params', async () => {
-    test('GET /api/items/:invalidItemId should return status 400', async () => {
+  describe('Invalid request params', async() => {
+    test('GET /api/items/:invalidItemId should return status 400', async() => {
       const invalidItemId = 'INVALID_ID'
       const response = await api.get(`/api/items/${invalidItemId}`)
         .expect(400)
@@ -33,16 +33,16 @@ describe('Item API', async () => {
     })
   })
 
-  describe('User is not authenticated', async () => {
-    test('GET /api/intra/items should return status 401', async () => {
+  describe('User is not authenticated', async() => {
+    test('GET /api/intra/items should return status 401', async() => {
       return api.get('/api/intra/items')
         .expect(401)
     })
   })
 
-  describe('User is authenticated', async () => {
-    describe('Authorized but invalid request params', async () => {
-      test('GET /api/intra/items/:invalidItemId should return status 400', async () => {
+  describe('User is authenticated', async() => {
+    describe('Authorized but invalid request params', async() => {
+      test('GET /api/intra/items/:invalidItemId should return status 400', async() => {
         const invalidItemId = 'INVALID_ID'
         const response = await api.get(`/api/intra/items/${invalidItemId}`)
           .set('Authorization', jwtToken)
@@ -52,8 +52,8 @@ describe('Item API', async () => {
       })
     })
 
-    describe('Table item is empty', async () => {
-      test('GET /api/intra/items should return status 200 and empty array', async () => {
+    describe('Table item is empty', async() => {
+      test('GET /api/intra/items should return status 200 and empty array', async() => {
         const response = await api.get('/api/intra/items')
           .set('Authorization', jwtToken)
           .expect(200)
@@ -63,13 +63,13 @@ describe('Item API', async () => {
       })
     })
 
-    describe('Table item has values', async () => {
-      beforeEach(async () => {
+    describe('Table item has values', async() => {
+      beforeEach(async() => {
         await removeAllFromDb(db)
         await insertInitialItems(db)
       })
 
-      test('GET /api/intra/items should return status 200 and values', async () => {
+      test('GET /api/intra/items should return status 200 and values', async() => {
         const itemsAtStart = await itemsInDb(db)
         const response = await api.get('/api/intra/items')
           .set('Authorization', jwtToken)
@@ -80,8 +80,8 @@ describe('Item API', async () => {
         expect(response.body).toEqual(expect.arrayContaining(itemsAtStart))
       })
 
-      describe('Item manipulation', async () => {
-        test('POST /api/intra/items creates new item', async () => {
+      describe('Item manipulation', async() => {
+        test('POST /api/intra/items creates new item', async() => {
           const itemsAtStart = await itemsInDb(db)
           const newItem = {}
           const response = await api.post('/api/intra/items')
@@ -95,9 +95,8 @@ describe('Item API', async () => {
           const newDbEntry = itemsAfter[itemsAfter.length - 1]
 
           expect(response.body).toEqual(newDbEntry)
-
         })
-        test('PUT /api/intra/items updates existing item', async () => {
+        test('PUT /api/intra/items updates existing item', async() => {
           const itemsAtStart = await itemsInDb(db)
           const updatedEntryIndex = 0
           const updatedFirstItem = {
@@ -117,7 +116,7 @@ describe('Item API', async () => {
           expect(response.body).toEqual(updatedEntry)
         })
 
-        test('DELETE /api/intra/items delete item return 204', async () => {
+        test('DELETE /api/intra/items delete item return 204', async() => {
           const itemsAtStart = await itemsInDb(db)
           const deletedItem = itemsAtStart[0]
           await api.delete(`/api/intra/items/${deletedItem.id}`)

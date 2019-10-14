@@ -7,7 +7,7 @@ let jwtToken
 const responseInvalidNavItemId = { message: 'Nav item id must be integer' }
 const getPublished = true
 
-beforeAll(async () => {
+beforeAll(async() => {
   api = await initializeApi()
   jwtToken = await getJwtToken(db)
 })
@@ -17,16 +17,16 @@ afterAll(() => {
 })
 
 describe('Navigation API', () => {
-  beforeAll(async () => {
+  beforeAll(async() => {
     await removeAllFromDb(db)
   })
 
   describe('User is not authenticated', () => {
-    test('GET /api/intra/navigation should return status 401', async () => {
-       api.get('/api/intra/navigation')
+    test('GET /api/intra/navigation should return status 401', async() => {
+      api.get('/api/intra/navigation')
         .expect(401)
     })
-    test('GET /api/intra/navigation should return status 200 and values', async () => {
+    test('GET /api/intra/navigation should return status 200 and values', async() => {
       const navItemsAtStart = await navItemsInDb(db, getPublished)
       const response = await api.get('/api/navigation')
         .expect(200)
@@ -39,7 +39,7 @@ describe('Navigation API', () => {
 
   describe('User is authenticated', () => {
     describe('Authorized but invalid request params', () => {
-      test('GET /api/intra/navigation/:invalidNavItemId should return status 400', async () => {
+      test('GET /api/intra/navigation/:invalidNavItemId should return status 400', async() => {
         const invalidNavItemId = 'INVALID_ID'
         const response = await api.get(`/api/intra/navigation/${invalidNavItemId}`)
           .set('Authorization', jwtToken)
@@ -49,8 +49,8 @@ describe('Navigation API', () => {
       })
     })
 
-    describe('Table navItem is empty',  () => {
-      test('GET /api/intra/navigation should return status 200 and empty array', async () => {
+    describe('Table navItem is empty', () => {
+      test('GET /api/intra/navigation should return status 200 and empty array', async() => {
         const response = await api.get('/api/intra/navigation')
           .set('Authorization', jwtToken)
           .expect(200)
@@ -61,12 +61,12 @@ describe('Navigation API', () => {
     })
 
     describe('Table navItem has values', () => {
-      beforeEach(async () => {
+      beforeEach(async() => {
         await removeAllFromDb(db)
         await insertInitialNavItems(db)
       })
 
-      test('GET /api/intra/navigation should return status 200 and values', async () => {
+      test('GET /api/intra/navigation should return status 200 and values', async() => {
         const navItemsAtStart = await navItemsInDb(db)
         const response = await api.get('/api/intra/navigation')
           .set('Authorization', jwtToken)
@@ -78,7 +78,7 @@ describe('Navigation API', () => {
       })
 
       describe('Navigation manipulation', () => {
-        test('POST /api/intra/navigation creates new navItem', async () => {
+        test('POST /api/intra/navigation creates new navItem', async() => {
           const navItemsAtStart = await navItemsInDb(db)
           const newNavItem = {
             sitePageId: null,
@@ -102,9 +102,8 @@ describe('Navigation API', () => {
           const newDbEntry = navItemsAfter[navItemsAfter.length - 1]
 
           expect(response.body).toEqual(newDbEntry)
-
         })
-        test('PUT /api/intra/navigation updates existing navItem', async () => {
+        test('PUT /api/intra/navigation updates existing navItem', async() => {
           const navItemsAtStart = await navItemsInDb(db)
           const updatedEntryIndex = 0
           const updatedFirstNavItem = {
@@ -133,7 +132,7 @@ describe('Navigation API', () => {
           expect(response.body).toEqual(updatedEntry)
         })
 
-        test('DELETE /api/intra/navigation delete navItem return 204', async () => {
+        test('DELETE /api/intra/navigation delete navItem return 204', async() => {
           const navItemsAtStart = await navItemsInDb(db)
           const deletedNavItem = navItemsAtStart[0]
           await api.delete(`/api/intra/navigation/${deletedNavItem.id}`)

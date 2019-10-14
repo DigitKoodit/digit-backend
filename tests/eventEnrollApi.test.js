@@ -8,15 +8,16 @@ const {
   insertEnrolls,
   eventEnrollsInDb,
   eventEnrollsInDbByEvent,
-  removeAllFromDb } = require('./eventEnrollHelpers')
+  removeAllFromDb
+} = require('./eventEnrollHelpers')
 const { insertInitialEvents, removeAllFromDb: removeAllEventsFromDb } = require('./eventHelpers')
 
 let api
 let jwtToken
-let eventId = 1
-let complexEventId = 2
-let responseInvalidEnrollId = { message: 'Event enroll id must be integer' }
-let currentDate = '2019-01-30T12:00:00+02:00'
+const eventId = 1
+const complexEventId = 2
+const responseInvalidEnrollId = { message: 'Event enroll id must be integer' }
+const currentDate = '2019-01-30T12:00:00+02:00'
 let fakeClock
 
 const setDate = dateString => {
@@ -26,7 +27,7 @@ const setDate = dateString => {
   })
 }
 
-beforeAll(async () => {
+beforeAll(async() => {
   api = await initializeApi()
   jwtToken = await getJwtToken(db)
 
@@ -39,7 +40,7 @@ afterAll(() => {
 })
 
 describe('Event enroll API', () => {
-  beforeAll(async () => {
+  beforeAll(async() => {
     // Truncates eventEnroll table which removes eventEnrolls too
     await removeAllFromDb(db)
     await removeAllEventsFromDb(db)
@@ -47,10 +48,10 @@ describe('Event enroll API', () => {
   })
 
   describe('Public API', () => {
-    let getPublic = true
+    const getPublic = true
 
     describe(`Event doesn't exists`, () => {
-      test('GET /api/events/:eventId/enrolls with non existing event id should return status 404', async () => {
+      test('GET /api/events/:eventId/enrolls with non existing event id should return status 404', async() => {
         const nonExistingEventId = 10101
         const eventNotFoundResponse = { message: 'Event not found' }
         const response = await api.get(`/api/events/${nonExistingEventId}/enrolls`)
@@ -60,7 +61,7 @@ describe('Event enroll API', () => {
     })
 
     describe('Event exists but no enrolls', () => {
-      test('GET /api/events/:eventId/enrolls should return status 200 and empty array ', async () => {
+      test('GET /api/events/:eventId/enrolls should return status 200 and empty array ', async() => {
         const response = await api.get(`/api/events/${eventId}/enrolls`)
           .set('Authorization', jwtToken)
           .expect(200)
@@ -70,12 +71,12 @@ describe('Event enroll API', () => {
     })
 
     describe('Table event_enroll has values', () => {
-      beforeEach(async () => {
+      beforeEach(async() => {
         await removeAllFromDb(db)
         await insertInitialEventEnrolls(db)
       })
 
-      test('GET /api/events/:eventId/enrolls should return status 200 and empty array ', async () => {
+      test('GET /api/events/:eventId/enrolls should return status 200 and empty array ', async() => {
         const publicEventEnrollsAtStart = await eventEnrollsInDbByEvent(db, eventId, getPublic)
         const response = await api.get(`/api/events/${eventId}/enrolls`)
           .expect(200)
@@ -84,9 +85,8 @@ describe('Event enroll API', () => {
         expect(response.body).toEqual(expect.arrayContaining(publicEventEnrollsAtStart))
       })
 
-
       describe(`Trying to enroll to a non existing event`, () => {
-        test('POST /api/events/:eventId/enrolls', async () => {
+        test('POST /api/events/:eventId/enrolls', async() => {
           const response404Event = { message: 'Event not found' }
           const nonExistingEventId = 10101
           const response = await api.post(`/api/events/${nonExistingEventId}/enrolls`)
@@ -97,7 +97,7 @@ describe('Event enroll API', () => {
       })
 
       describe(`Enrolling to an event`, () => {
-        test('POST /api/events/:complexEventId/enrolls creates new eventEnroll', async () => {
+        test('POST /api/events/:complexEventId/enrolls creates new eventEnroll', async() => {
           const eventEnrollsAtStart = await eventEnrollsInDb(db)
           const newEventEnroll = {
             values: {
@@ -116,7 +116,7 @@ describe('Event enroll API', () => {
 
           expect(response.body).toEqual(newDbEntry)
         })
-        test('POST /api/events/:complexEventId/enrolls can not enroll when event is full', async () => {
+        test('POST /api/events/:complexEventId/enrolls can not enroll when event is full', async() => {
           const dummyEnrolls = [
             { values: { etunimi: 'Name1', radio: 'option-a' } },
             { values: { etunimi: 'Name2', radio: 'option-a' } },
@@ -149,7 +149,7 @@ describe('Event enroll API', () => {
 
           expect(response.body).toEqual(response400)
         })
-        test('POST /api/events/:complexEventId/enrolls creates spare enrollment when event max limit reached', async () => {
+        test('POST /api/events/:complexEventId/enrolls creates spare enrollment when event max limit reached', async() => {
           const dummyEnrolls = [
             { values: { etunimi: 'Name1', radio: 'option-a' } },
             { values: { etunimi: 'Name2', radio: 'option-a' } }
@@ -182,7 +182,7 @@ describe('Event enroll API', () => {
         })
       })
 
-      test('POST /api/intra/events/:eventId/enrolls with invalid input should return status 400', async () => {
+      test('POST /api/intra/events/:eventId/enrolls with invalid input should return status 400', async() => {
         const eventEnrollsAtStart = await eventEnrollsInDb(db)
         const invalidNewEventEnroll = {
           values: {
@@ -226,7 +226,7 @@ describe('Event enroll API', () => {
         expect(response.body).toEqual(response400)
       })
 
-      test('POST /api/intra/events/:eventId/enrolls with too long input string should return status 400', async () => {
+      test('POST /api/intra/events/:eventId/enrolls with too long input string should return status 400', async() => {
         const eventEnrollsAtStart = await eventEnrollsInDb(db)
         const invalidNewEventEnroll = {
           values: {
@@ -259,18 +259,17 @@ describe('Event enroll API', () => {
     })
   })
 
-  describe('Private API',  () => {
-    describe('User is not authenticated',  () => {
-      test('GET /api/intra/events/:eventId/enrolls should return status 401', async () => {
+  describe('Private API', () => {
+    describe('User is not authenticated', () => {
+      test('GET /api/intra/events/:eventId/enrolls should return status 401', async() => {
         const response = await api.get(`/api/intra/events/${eventId}/enrolls`)
           .expect(401)
       })
     })
 
-    describe('User is authenticated',  () => {
-
+    describe('User is authenticated', () => {
       describe('Authorized but invalid request params', () => {
-        test('PUT /api/intra/events/:eventId/enrolls/:invalidEventEnrollId should return status 400', async () => {
+        test('PUT /api/intra/events/:eventId/enrolls/:invalidEventEnrollId should return status 400', async() => {
           const invalidEventEnrollId = 'INVALID_ID'
           const response = await api.put(`/api/intra/events/${eventId}/enrolls/${invalidEventEnrollId}`)
             .set('Authorization', jwtToken)
@@ -279,11 +278,11 @@ describe('Event enroll API', () => {
         })
       })
 
-      describe('Table eventEnroll is empty',  () => {
-        beforeEach(async () => {
+      describe('Table eventEnroll is empty', () => {
+        beforeEach(async() => {
           await removeAllFromDb(db)
         })
-        test('GET /api/intra/events/:eventId/enrolls should return status 200 and empty array', async () => {
+        test('GET /api/intra/events/:eventId/enrolls should return status 200 and empty array', async() => {
           const response = await api.get(`/api/intra/events/${eventId}/enrolls`)
             .set('Authorization', jwtToken)
             .expect(200)
@@ -294,12 +293,12 @@ describe('Event enroll API', () => {
       })
 
       describe('Table event_enroll has values', () => {
-        beforeEach(async () => {
+        beforeEach(async() => {
           await removeAllFromDb(db)
           await insertInitialEventEnrolls(db)
         })
 
-        test('GET /api/intra/events/:eventId/enrolls should return status 200 and values', async () => {
+        test('GET /api/intra/events/:eventId/enrolls should return status 200 and values', async() => {
           const eventEnrollsAtStart = await eventEnrollsInDbByEvent(db, eventId)
           const response = await api.get(`/api/intra/events/${eventId}/enrolls`)
             .set('Authorization', jwtToken)
@@ -310,7 +309,7 @@ describe('Event enroll API', () => {
         })
 
         describe('Event enroll manipulation', () => {
-          test('POST /api/intra/events/:eventId/enrolls creates new eventEnroll', async () => {
+          test('POST /api/intra/events/:eventId/enrolls creates new eventEnroll', async() => {
             const eventEnrollsAtStart = await eventEnrollsInDb(db)
             const newEventEnroll = {
               values: {
@@ -330,7 +329,7 @@ describe('Event enroll API', () => {
 
             expect(response.body).toEqual(newDbEntry)
           })
-          test('PUT /api/intra/events/:eventId/enrolls/:eventEnrollId response with 404', async () => {
+          test('PUT /api/intra/events/:eventId/enrolls/:eventEnrollId response with 404', async() => {
             const eventEnrollsAtStart = await eventEnrollsInDbByEvent(db, eventId)
             const updatedEventEnrollIndex = 0
             const originalEventEnroll = eventEnrollsAtStart[updatedEventEnrollIndex]
@@ -352,7 +351,7 @@ describe('Event enroll API', () => {
             expect(response.body).toEqual(eventEnrollsAfter[updatedEventEnrollIndex])
           })
 
-          test('DELETE /api/intra/events/:eventId/enrolls delete eventEnroll return 204', async () => {
+          test('DELETE /api/intra/events/:eventId/enrolls delete eventEnroll return 204', async() => {
             const eventEnrollsAtStart = await eventEnrollsInDb(db)
             const deletedEventEnroll = eventEnrollsAtStart[0]
             await api.delete(`/api/intra/events/${eventId}/enrolls/${deletedEventEnroll.id}`)
@@ -362,8 +361,8 @@ describe('Event enroll API', () => {
             expect(eventEnrollsAfter.length).toBe(eventEnrollsAtStart.length - 1)
             expect(eventEnrollsAfter).not.toContainEqual(deletedEventEnroll)
           })
-          test('DELETE /api/intra/events/:complexEventId/enrolls updates last spare enroll', async () => {
-            // "Complex" event 2 has one existing enroll with radio option-a 
+          test('DELETE /api/intra/events/:complexEventId/enrolls updates last spare enroll', async() => {
+            // "Complex" event 2 has one existing enroll with radio option-a
             // maxParticipant is 3 and reserve count 1
             // option-a has reserve 2 and option-b reserve 1
             // By removing second option-a entry the isSpare of last one should be false after operation
@@ -429,7 +428,7 @@ describe('Event enroll API', () => {
             }
             expect(spareToNormalEnroll).toMatchObject(expectedUpdatedEnroll)
           })
-          test('DELETE /api/intra/events/:complexEventId/enrolls does not updates last optionA when optionB enroll is deleted', async () => {
+          test('DELETE /api/intra/events/:complexEventId/enrolls does not updates last optionA when optionB enroll is deleted', async() => {
             const dummyEnrolls = [
               {
                 eventId: complexEventId,
@@ -492,8 +491,7 @@ describe('Event enroll API', () => {
             }
             expect(spareToNormalEnroll).toMatchObject(expectedUpdatedEnroll)
           })
-          test('DELETE /api/intra/events/:complexEventId/enrolls does not updates last optionA when optionC unlimited enroll is deleted', async () => {
-            
+          test('DELETE /api/intra/events/:complexEventId/enrolls does not updates last optionA when optionC unlimited enroll is deleted', async() => {
             const dummyEnrolls = [
               {
                 eventId: complexEventId,

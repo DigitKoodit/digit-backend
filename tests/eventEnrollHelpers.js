@@ -1,7 +1,7 @@
 const { pgp } = require('../db/pgp')
 const { decorateList, decoratePublicList } = require('../app/models/event/eventEnrollDecorators')
 
-// *NOTE* enrolls relies on existing evetns 1 and 2. Defined in ./eventHelpers.js 
+// *NOTE* enrolls relies on existing evetns 1 and 2. Defined in ./eventHelpers.js
 const initialEventEnrolls = [
   {
     id: 1,
@@ -61,7 +61,7 @@ const insertInitialEventEnrolls = db =>
 const insertEnrolls = (db, enrolls) => {
   const columnSet = new pgp.helpers.ColumnSet([
     { name: 'event_id', prop: 'eventId' },
-    { name: 'event_enroll_data', prop: 'eventEnrollData', mod: ':json' },
+    { name: 'event_enroll_data', prop: 'eventEnrollData', mod: ':json' }
 
   ], { table: 'event_enroll' })
   const insertEnrolls = pgp.helpers.insert(enrolls, columnSet)

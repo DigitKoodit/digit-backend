@@ -6,7 +6,7 @@ let api
 let jwtToken
 const responseInvalidSitePageId = { message: 'Page id must be integer' }
 
-beforeAll(async () => {
+beforeAll(async() => {
   api = await initializeApi()
   jwtToken = await getJwtToken(db)
 })
@@ -16,12 +16,12 @@ afterAll(() => {
 })
 
 describe('Site page API', () => {
-  beforeAll(async () => {
+  beforeAll(async() => {
     await removeAllFromDb(db)
   })
 
   describe('Invalid request params', () => {
-    test('GET /api/pages/:invalidSitePageId should return status 400', async () => {
+    test('GET /api/pages/:invalidSitePageId should return status 400', async() => {
       const invalidSitePageId = 'INVALID_ID'
       const response = await api.get(`/api/pages/${invalidSitePageId}`)
         .expect(400)
@@ -31,15 +31,15 @@ describe('Site page API', () => {
   })
 
   describe('User is not authenticated', () => {
-    test('GET /api/intra/pages should return status 401', async () => {
-     api.get('/api/intra/pages')
+    test('GET /api/intra/pages should return status 401', async() => {
+      api.get('/api/intra/pages')
         .expect(401)
     })
   })
 
   describe('User is authenticated', () => {
     describe('Authorized but invalid request params', () => {
-      test('GET /api/intra/pages/:invalidSitePageId should return status 400', async () => {
+      test('GET /api/intra/pages/:invalidSitePageId should return status 400', async() => {
         const invalidSitePageId = 'INVALID_ID'
         const response = await api.get(`/api/intra/pages/${invalidSitePageId}`)
           .set('Authorization', jwtToken)
@@ -50,7 +50,7 @@ describe('Site page API', () => {
     })
 
     describe('Table sitePage is empty', () => {
-      test('GET /api/intra/pages should return status 200 and empty array', async () => {
+      test('GET /api/intra/pages should return status 200 and empty array', async() => {
         const response = await api.get('/api/intra/pages')
           .set('Authorization', jwtToken)
           .expect(200)
@@ -61,12 +61,12 @@ describe('Site page API', () => {
     })
 
     describe('Table sitePage has values', () => {
-      beforeEach(async () => {
+      beforeEach(async() => {
         await removeAllFromDb(db)
         await insertInitialSitePages(db)
       })
 
-      test('GET /api/intra/pages should return status 200 and values', async () => {
+      test('GET /api/intra/pages should return status 200 and values', async() => {
         const sitePagesAtStart = await sitePagesInDb(db)
         const response = await api.get('/api/intra/pages')
           .set('Authorization', jwtToken)
@@ -78,7 +78,7 @@ describe('Site page API', () => {
       })
 
       describe('SitePage manipulation', () => {
-        test('POST /api/intra/pages creates new sitePage', async () => {
+        test('POST /api/intra/pages creates new sitePage', async() => {
           const sitePagesAtStart = await sitePagesInDb(db)
           const newSitePage = {
             title: 'Page title',
@@ -97,9 +97,8 @@ describe('Site page API', () => {
           const newDbEntry = sitePagesAfter[sitePagesAfter.length - 1]
 
           expect(response.body).toEqual(newDbEntry)
-
         })
-        test('PUT /api/intra/pages/:sitePageId updates existing sitePage', async () => {
+        test('PUT /api/intra/pages/:sitePageId updates existing sitePage', async() => {
           const sitePagesAtStart = await sitePagesInDb(db)
           const updatedEntryIndex = 0
           const updatedFirstSitePage = {
@@ -123,7 +122,7 @@ describe('Site page API', () => {
           expect(response.body).toEqual(updatedEntry)
         })
 
-        test('DELETE /api/intra/pages delete sitePage return 204', async () => {
+        test('DELETE /api/intra/pages delete sitePage return 204', async() => {
           const sitePagesAtStart = await sitePagesInDb(db)
           const deletedSitePage = sitePagesAtStart[0]
           await api.delete(`/api/intra/pages/${deletedSitePage.id}`)

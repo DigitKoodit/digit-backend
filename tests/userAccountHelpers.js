@@ -4,7 +4,6 @@ const UserAccount = require('../app/models/userAccount/userAccountModel')
 const UserAccountRole = require('../app/models/userAccount/userRoleModel')
 const { decoratePublic } = require('../app/models/userAccount/userAccountDecorators')
 
-
 // Returns promise
 const generatePasswordHash = password => passwordHash.hash(password)
 
@@ -22,9 +21,10 @@ const insertDefaultRolesAndAdmin = db => {
     registrationTokenValid: null
   }
   const roles = [
-    { name: 'admin', 'accessLevel': 1 },
-    { name: 'user', 'accessLevel': 2 },
-    { name: 'visitor', 'accessLevel': 3 }]
+    { name: 'admin', accessLevel: 1 },
+    { name: 'user', accessLevel: 2 },
+    { name: 'visitor', accessLevel: 3 }
+  ]
   return db.tx(t => {
     t.batch(roles
       .map(role => UserAccountRole.create(t, role)

@@ -152,8 +152,6 @@ const initialEvents = [
   }
 ]
 
-
-
 const eventsInDb = db =>
   db.any('SELECT * FROM event ORDER BY event_id')
     .then(decorateList)
@@ -163,7 +161,7 @@ const insertInitialEvents = db =>
     t.batch(initialEvents.map(event => db.none(
       `INSERT INTO event (event_id, event_data) VALUES ($[event_id], $[event_data])`, event))
     )
-      // For some reason batch doesn't keep the order.. and therefore 
+      // For some reason batch doesn't keep the order.. and therefore
       .then(() => t.none('ALTER SEQUENCE event_event_id_seq RESTART WITH 6')))
 
 const removeAllFromDb = db => db.none('TRUNCATE TABLE event RESTART IDENTITY CASCADE')

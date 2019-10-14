@@ -7,7 +7,7 @@ let api
 let jwtToken
 const responseInvalidEventId = { message: 'Event id must be integer' }
 const responseSingmeEventNotFound = { message: 'Event not found' }
-let currentDate = '2019-01-30T12:00:00+02:00'
+const currentDate = '2019-01-30T12:00:00+02:00'
 
 let fakeClock
 const setDate = dateString => {
@@ -17,7 +17,7 @@ const setDate = dateString => {
   })
 }
 
-beforeAll(async () => {
+beforeAll(async() => {
   api = await initializeApi()
   jwtToken = await getJwtToken(db)
   setDate(currentDate)
@@ -29,13 +29,13 @@ afterAll(() => {
 })
 
 describe('Event API', () => {
-  beforeEach(async () => {
+  beforeEach(async() => {
     // Truncates event table which removes enrolls too
     await removeAllFromDb(db)
   })
 
   describe('Invalid request params', () => {
-    test('GET /api/events/:invalidEventId should return status 400', async () => {
+    test('GET /api/events/:invalidEventId should return status 400', async() => {
       const invalidEventId = 'INVALID_ID'
       const response = await api.get(`/api/events/${invalidEventId}`)
         .expect(400)
@@ -44,28 +44,27 @@ describe('Event API', () => {
   })
 
   describe('Request events with limited visibility', () => {
-    beforeEach(async () => {
+    beforeEach(async() => {
       // await removeAllFromDb(db)
       await insertInitialEvents(db)
     })
 
-    test('GET /api/events/:completelyHiddenEventId should return status 404', async () => {
+    test('GET /api/events/:completelyHiddenEventId should return status 404', async() => {
       const completelyHiddenEventId = 3
       const response = await api.get(`/api/events/${completelyHiddenEventId}`)
         .expect(404)
       expect(response.body).toEqual(responseSingmeEventNotFound)
     })
 
-    test('GET /api/events/:visibleNotPublicEventId should return status event', async () => {
+    test('GET /api/events/:visibleNotPublicEventId should return status event', async() => {
       const eventsAtStart = await eventsInDb(db)
-      console.log(eventsAtStart)
       const visibleNotPublicEventId = 4
       const response = await api.get(`/api/events/${visibleNotPublicEventId}`)
         .expect(200)
       expect(response.body).toEqual(eventsAtStart[3])
     })
 
-    test('GET /api/events/:publicNotVisibleEventId should return status event', async () => {
+    test('GET /api/events/:publicNotVisibleEventId should return status event', async() => {
       const eventsAtStart = await eventsInDb(db)
       const publicNotVisibleEventId = 5
       const response = await api.get(`/api/events/${publicNotVisibleEventId}`)
@@ -75,16 +74,15 @@ describe('Event API', () => {
   })
 
   describe('User is not authenticated', () => {
-    test('GET /api/intra/events should return status 401', async () => {
+    test('GET /api/intra/events should return status 401', async() => {
       api.get('/api/intra/events')
         .expect(401)
     })
   })
 
   describe('User is authenticated', () => {
-
     describe('Authorized but invalid request params', () => {
-      test('GET /api/intra/events/:invalidEventId should return status 400', async () => {
+      test('GET /api/intra/events/:invalidEventId should return status 400', async() => {
         const invalidEventId = 'INVALID_ID'
         const response = await api.get(`/api/intra/events/${invalidEventId}`)
           .set('Authorization', jwtToken)
@@ -94,7 +92,7 @@ describe('Event API', () => {
     })
 
     describe('Table event is empty', () => {
-      test('GET /api/intra/events should return status 200 and empty array', async () => {
+      test('GET /api/intra/events should return status 200 and empty array', async() => {
         const response = await api.get('/api/intra/events')
           .set('Authorization', jwtToken)
           .expect(200)
@@ -105,12 +103,12 @@ describe('Event API', () => {
     })
 
     describe('Table event has values', () => {
-      beforeEach(async () => {
+      beforeEach(async() => {
         // await removeAllFromDb(db)
         await insertInitialEvents(db)
       })
 
-      test('GET /api/intra/events should return status 200 and values', async () => {
+      test('GET /api/intra/events should return status 200 and values', async() => {
         const eventsAtStart = await eventsInDb(db)
         const response = await api.get('/api/intra/events')
           .set('Authorization', jwtToken)
@@ -121,7 +119,7 @@ describe('Event API', () => {
       })
 
       describe('Event manipulation', () => {
-        test('POST /api/intra/events creates new event', async () => {
+        test('POST /api/intra/events creates new event', async() => {
           const eventsAtStart = await eventsInDb(db)
           const newEvent = {
             name: 'New event',
@@ -145,7 +143,7 @@ describe('Event API', () => {
                     maxParticipants: null,
                     reserveCount: null
                   }
-                ],
+                ]
               }
             ],
             activeUntil: '2019-01-22T13:00:00+02:00',
@@ -166,9 +164,8 @@ describe('Event API', () => {
           const newDbEntry = eventsAfter[eventsAfter.length - 1]
 
           expect(response.body).toEqual(newDbEntry)
-
         })
-        test('PUT /api/intra/events updates existing event', async () => {
+        test('PUT /api/intra/events updates existing event', async() => {
           const eventsAtStart = await eventsInDb(db)
           const updatedEntryIndex = 0
           const updatedFirstEvent = {
@@ -228,7 +225,7 @@ describe('Event API', () => {
           expect(response.body).toEqual(updatedEntry)
         })
 
-        test('DELETE /api/intra/events delete event return 204', async () => {
+        test('DELETE /api/intra/events delete event return 204', async() => {
           const eventsAtStart = await eventsInDb(db)
           const deletedEvent = eventsAtStart[0]
           await api.delete(`/api/intra/events/${deletedEvent.id}`)
