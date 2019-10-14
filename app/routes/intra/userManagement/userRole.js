@@ -33,7 +33,7 @@ router.put('/:userRoleId', validateUpdate(), (req, res) => {
 router.delete('/:userRoleId', (req, res) => {
   const { userRoleId } = req.params
   return remove(req.db, userRoleId)
-    .then(id => res.status(204).send())
+    .then(() => res.status(204).send())
 })
 
 module.exports = router

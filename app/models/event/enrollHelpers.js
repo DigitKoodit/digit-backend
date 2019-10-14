@@ -1,7 +1,7 @@
 const moment = require('moment')
 const { BadRequest, Forbidden } = require('http-errors')
 const isEmpty = require('lodash/isEmpty')
-const { bifurcateBy } = require('../../helpers/helpers')
+const { partition } = require('../../helpers/helpers')
 
 const hasStillLimits = event => event.reservedUntil && moment(event.reservedUntil).isAfter(moment())
 
@@ -53,7 +53,7 @@ const determineIsSpare = (event, previousEnrolls, enroll) => {
   const limitedFields = getLimitedFields(fields)
   const hasLimitedFields = !isEmpty(limitedFields) && Object.values(limitedFields).filter(value => !!value).length
 
-  const [spareEnrolls, regularEnrolls] = bifurcateBy(previousEnrolls, enroll => enroll.isSpare)
+  const [spareEnrolls, regularEnrolls] = partition(previousEnrolls, enroll => enroll.isSpare)
   if(!hasLimitedFields) {
     if(regularEnrolls.length < maxParticipants) {
       return false
@@ -94,7 +94,7 @@ const hasLimitedFields = fields => {
 const getLimitedFieldIfEnrollMatch = (event, enroll) => {
   const optionFields = event.fields.filter(field => !!field.options)
   const enrollKeyValue = Object.entries(enroll.values)
-    .find(([key, value]) =>
+    .find(([, value]) =>
       optionFields
         .find(field =>
           field.options.find(option => option.name === value && option.reserveCount != null))

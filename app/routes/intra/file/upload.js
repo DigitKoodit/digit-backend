@@ -1,12 +1,12 @@
 const router = require('express-promise-router')({ mergeParams: true })
 const path = require('path')
-const { NotFound, BadRequest } = require('http-errors')
+const { NotFound } = require('http-errors')
 const moment = require('moment')
 const multer = require('multer')
 const mkdirp = require('mkdirp')
 
 const { db } = require('../../../../db/pgp')
-const { findByName, saveBatch } = require('../../../models/file/fileModel')
+const { saveBatch } = require('../../../models/file/fileModel')
 const { decorateInitialList, decorateList } = require('../../../models/file/fileDecorators')
 
 const maxFileSize = 5 * 1024 * 1024

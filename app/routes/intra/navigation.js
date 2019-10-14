@@ -34,7 +34,7 @@ router.put('/:navItemId', validateUpdate(), (req, res) => {
 router.delete('/:navItemId', (req, res) => {
   const { navItemId } = req.params
   return remove(req.db, navItemId)
-    .then(id => res.status(204).send())
+    .then(() => res.status(204).send())
 })
 
 const findNavItemById = findByIdToResultRow('Nav item', 'navItemId', findById)

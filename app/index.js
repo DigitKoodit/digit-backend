@@ -57,7 +57,7 @@ app.use((req, res, next) => {
 })
 
 // error handler
-app.use((err, req, res, next) => {
+app.use((err, req, res) => {
   // Comment out next line if error message needed for tests etc
   // console.error(JSON.stringify(err, null, 4), err)
   res.status(err.status || 500)

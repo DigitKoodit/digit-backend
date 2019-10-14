@@ -2,7 +2,6 @@ const { validationResult } = require('express-validator/check')
 const { matchedData } = require('express-validator/filter')
 const pick = require('lodash/pick')
 const keys = require('lodash/keys')
-const noop = require('lodash/noop')
 const createError = require('http-errors')
 
 const checkValidationResult = (req, res, next) => {

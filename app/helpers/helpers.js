@@ -18,7 +18,7 @@ const capitalize = string => string && string[0].toUpperCase() + string.slice(1)
 const nullify = value => typeof value === 'string' && value.length === 0 ? null : value
 
 const logBody = (msg = '') => (req, res, next) => {
-  console.log(msg, JSON.stringify(req.body, null, 4))
+  console.log(msg, JSON.stringify(req.body, null, 4)) // eslint-disable-line
   next()
 }
 
@@ -37,8 +37,13 @@ const findByIdToResultRow = (modelName, idField, findByIdAction) => (req, _, nex
     })
 }
 
-const bifurcateBy = (arr, fn) =>
-  arr.reduce((acc, val, i) => (acc[fn(val, i) ? 0 : 1].push(val), acc), [[], []])
+const partition = (arr, fn) =>
+  arr.reduce(
+    (acc, val, i, arr) => {
+      acc[fn(val, i, arr) ? 0 : 1].push(val)
+      return acc
+    },
+    [[], []])
 
 module.exports = {
   snakeToCamelCaseObject,
@@ -48,5 +53,5 @@ module.exports = {
   nullify,
   logBody,
   findByIdToResultRow,
-  bifurcateBy
+  partition
 }

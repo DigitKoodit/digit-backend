@@ -34,7 +34,7 @@ router.put('/:sitePageId', validateUpdate(), (req, res) => {
 router.delete('/:sitePageId', (req, res) => {
   const { sitePageId } = req.params
   return remove(req.db, sitePageId)
-    .then(id => res.status(204).send())
+    .then(() => res.status(204).send())
 })
 
 const findPageById = findByIdToResultRow('Page', 'sitePageId', findById)

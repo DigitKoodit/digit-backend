@@ -34,7 +34,7 @@ router.put('/:eventId', validateUpdate(), (req, res) => {
 router.delete('/:eventId', (req, res) => {
   const { eventId } = req.params
   return remove(req.db, eventId)
-    .then(id => res.status(204).send())
+    .then(() => res.status(204).send())
 })
 
 const findEventById = findByIdToResultRow('Event', 'eventId', findById)

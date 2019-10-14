@@ -42,7 +42,7 @@ router.post('/', validateRegistrationCreate(), (req, res) => {
       }
       return save(req.db, newUser)
     })
-    .then(saved => {
+    .then(() => { // TODO: pass saved item as parameter and send emails etc
       let mailTransporter
       if(nodeEnv === 'test' || nodeEnv === 'development') {
         mailTransporter = nodemailer.createTransport({
@@ -83,7 +83,7 @@ router.put('/', validateRegistrationUpdate(), (req, res) =>
       }
       return save(req.db, data, userResult.id)
     })
-    .then(saved => {
+    .then(() => {
       res.send({ success: true })
     })
 )

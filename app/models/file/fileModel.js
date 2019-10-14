@@ -36,7 +36,7 @@ const create = (db, data, user) => {
     .then(result => file.findById(db, result.file_id))
 }
 
-const update = (db, { id, ...data }, user, fileId) => {
+const update = (db, { id: __, ...data }, user, fileId) => {
   const dataWithTimestamp = {
     ...data,
     updatedAt: moment().format()

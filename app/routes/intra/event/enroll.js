@@ -55,14 +55,14 @@ router.delete('/:eventEnrollId', (req, res) => {
 
   return req.startTx(txDb =>
     remove(txDb, eventEnrollId)
-      .then(removedResult => {
+      .then(() => {
         // TODO: when and how to clear all spare spots?
         if(hasStillLimits(event)) {
           if(hasLimitedFields(event.fields)) {
             const [fieldName, fieldValue] = getLimitedFieldIfEnrollMatch(event, removableEnroll)
             if(fieldName) {
               return recalculateSpareEnrollWithLimitedField(txDb, event.id, fieldName, fieldValue)
-                .then(result => {
+                .then(() => {
                   return true
                 })
             }

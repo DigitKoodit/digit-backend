@@ -2,8 +2,8 @@ const filter = require('lodash/filter')
 const moment = require('moment')
 
 const decoratePublic = eventEnroll => {
-  const { event_enroll_id: id, event_id: eventId, event_enroll_data, fields } = eventEnroll
-  const { isSpare, values = {}, createdAt } = event_enroll_data
+  const { event_enroll_id: id, event_id: eventId, event_enroll_data: eventEnrollData, fields } = eventEnroll
+  const { isSpare, values = {}, createdAt } = eventEnrollData
   const publicValues = filter(fields, 'public')
     .reduce((acc, field) =>
       ({ ...acc, [field.name]: values[field.name] }), {})
@@ -17,8 +17,8 @@ const decoratePublic = eventEnroll => {
 }
 
 const decorate = eventEnroll => {
-  const { event_enroll_id: id, event_id: eventId, event_enroll_data } = eventEnroll
-  const { isSpare = false, values, createdAt } = event_enroll_data
+  const { event_enroll_id: id, event_id: eventId, event_enroll_data: eventEnrollData } = eventEnroll
+  const { isSpare = false, values, createdAt } = eventEnrollData
   return {
     id,
     eventId,

@@ -37,7 +37,7 @@ router.put('/:fileId', validateUpdate(), (req, res) => {
 router.delete('/:fileId', (req, res) => {
   const { fileId } = req.params
   return remove(req.db, fileId)
-    .then(id => res.status(204).send())
+    .then(() => res.status(204).send())
 })
 
 router.param('fileId', findFileById)

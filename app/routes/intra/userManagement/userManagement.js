@@ -21,7 +21,7 @@ router.put('/:userAccountId', validateUpdate(), (req, res) => {
 router.delete('/:userAccountId', (req, res) => {
   const { userAccountId } = req.params
   return remove(req.db, userAccountId)
-    .then(id => res.status(204).send())
+    .then(() => res.status(204).send())
 })
 
 router.param('userAccountId', (req, _, next, value) => {

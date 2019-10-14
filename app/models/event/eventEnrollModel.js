@@ -55,7 +55,7 @@ const update = (db, eventId, { id, ...data }) => {
   return db.one(sql, params)
     .then(result =>
       eventEnroll.findById(db, result.event_enroll_id))
-    .catch(error => {
+    .catch(() => {
       throw new NotFound('Event enroll not found')
     })
 }

@@ -372,7 +372,7 @@ describe('Enroll helpers', () => {
     describe('enrolling to a full event after it has started', () => {
       it('should throw BadRequest error', () => {
         const maxEnrolls = 8
-        const enrolls = Array.apply(null, { length: maxEnrolls }).map(entry => dummyEnroll)
+        const enrolls = Array.apply(null, { length: maxEnrolls }).map(__ => dummyEnroll)
         const timeAfterEventStartTime = moment(eventActiveAt).add(1, 'minute').format()
         setDate(timeAfterEventStartTime)
         expect(() =>
