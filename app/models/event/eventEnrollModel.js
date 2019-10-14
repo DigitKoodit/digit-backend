@@ -19,10 +19,9 @@ eventEnroll.findAll = (db, eventId, activeEventsOnly) =>
     LEFT JOIN event e ON e.event_id = ee.event_id
     WHERE e.event_id = $[eventId]
     ${!isNil(activeEventsOnly)
-      ? `AND ((e.event_data->>'isVisible')::boolean OR (e.event_data->>'isPublished')::boolean)`
-      : ''} ORDER BY event_enroll_id`,
-    { eventId, currentTime: moment().format() })
-
+    ? `AND ((e.event_data->>'isVisible')::boolean OR (e.event_data->>'isPublished')::boolean)`
+    : ''} ORDER BY event_enroll_id`,
+  { eventId, currentTime: moment().format() })
 
 eventEnroll.save = (db, eventId, data, id) => id
   ? update(db, eventId, data, id)
@@ -67,7 +66,7 @@ eventEnroll.remove = (db, id) => {
 }
 
 eventEnroll.recalculateSpareEnrolls = (db, eventId) => {
-  let updateFromAllSpareEnrolls = `UPDATE event_enroll 
+  const updateFromAllSpareEnrolls = `UPDATE event_enroll 
     SET event_enroll_data = jsonb_set(event_enroll_data, '{isSpare}', 'false')
     WHERE event_enroll_id = (
       SELECT ee.event_enroll_id
@@ -83,7 +82,7 @@ eventEnroll.recalculateSpareEnrolls = (db, eventId) => {
 }
 
 eventEnroll.recalculateSpareEnrollWithLimitedField = (db, eventId, fieldName, fieldValue) => {
-  let updateOnlyOnesWithFieldName = `UPDATE event_enroll 
+  const updateOnlyOnesWithFieldName = `UPDATE event_enroll 
     SET event_enroll_data = jsonb_set(event_enroll_data, '{isSpare}', 'false')
     WHERE event_enroll_id = (
       SELECT ee.event_enroll_id
@@ -98,6 +97,5 @@ eventEnroll.recalculateSpareEnrollWithLimitedField = (db, eventId, fieldName, fi
   `
   return db.oneOrNone(updateOnlyOnesWithFieldName, { eventId, fieldName, fieldValue })
 }
-
 
 module.exports = eventEnroll

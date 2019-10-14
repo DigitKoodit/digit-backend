@@ -15,7 +15,7 @@ router.get('/:navItemId', (req, res) =>
   res.send(decorate(req.resultRow)))
 
 router.post('/', validateCreate(), (req, res) => {
-  let newItem = {
+  const newItem = {
     ...req.body
   }
   return save(req.db, newItem)
@@ -45,8 +45,6 @@ publicRouter.get('/', (req, res) =>
   findAll(req.db, true)
     .then(decorateList)
     .then(result => res.send(result)))
-
-
 
 module.exports = {
   router,

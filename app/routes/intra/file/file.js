@@ -17,7 +17,7 @@ const findFileById = (req, _, next, value) =>
     })
 
 router.post('/', validateCreate(), (req, res) => {
-  let newItem = {
+  const newItem = {
     ...req.body
   }
   return save(req.db, newItem, req.user)

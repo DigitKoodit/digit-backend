@@ -3,7 +3,6 @@ const isEmpty = require('lodash/isEmpty')
 const isObject = require('lodash/isObject')
 const { getValidator } = require('../../helpers/validatorHelpers')
 
-
 const validateValueField = (value, { req, path }) => {
   const valueKey = path.split('.')[1]
   const eventFields = req.resultRow.fields || req.resultRow.event_data.fields
@@ -17,10 +16,10 @@ const validateValueField = (value, { req, path }) => {
   }
 
   const expectTextValue = field.type === 'text'
-  const isValidTextValue = expectTextValue && 
-    (typeof value === 'string' || typeof value === 'number') 
+  const isValidTextValue = expectTextValue &&
+    (typeof value === 'string' || typeof value === 'number')
   if(isValidTextValue) {
-    if(field.maxLength != null && value.length > field.maxLength){
+    if(field.maxLength != null && value.length > field.maxLength) {
       throw new Error('liian monta merkkiä')
     }
     return true
@@ -53,7 +52,7 @@ const schema = {
   },
   'values.*': {
     custom: {
-      options: validateValueField,
+      options: validateValueField
     }
   }
 }

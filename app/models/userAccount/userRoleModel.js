@@ -28,7 +28,7 @@ const update = (db, data, id) => {
 }
 
 const save = (db, data, id) => (id ? update(db, data, id) : create(db, data))
-.then(result => findById(db, result.user_role_id))
+  .then(result => findById(db, result.user_role_id))
 
 const removeAll = db => process.env.NODE_ENV === 'test' &&
   db.none('TRUNCATE TABLE user_role RESTART IDENTITY CASCADE')

@@ -21,14 +21,14 @@ const isEnrollPossible = (event, previousEnrollResults) => {
   return true
 }
 
-const getLimitedFields = fields => fields.reduce((acc, field) => 
+const getLimitedFields = fields => fields.reduce((acc, field) =>
   field.options
     ? ({
       ...acc,
       [field.name]: field.options.reduce(reduceOptionReserveCounts, {})
     })
     : acc,
-  {})
+{})
 
 const reduceOptionReserveCounts = (acc, option) =>
   option.reserveCount
@@ -84,7 +84,6 @@ const determineIsSpare = (event, previousEnrolls, enroll) => {
     const noMoreRegularSpace = regularEnrolls.length >= maxParticipants
     return noMoreRegularSpace || noFieldSpace
   })
-
 }
 
 const hasLimitedFields = fields => {

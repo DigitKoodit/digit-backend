@@ -3,7 +3,7 @@ const formatDateOrNull = dateString => dateString ? moment(dateString).format() 
 
 const decorate = event => {
   const { event_id: id } = event
-  const { 
+  const {
     name,
     description,
     fields,
@@ -14,14 +14,14 @@ const decorate = event => {
     isPublished,
     maxParticipants,
     reserveCount
-   } = event.event_data
+  } = event.event_data
   return {
     id,
     name,
     fields,
     description,
     isVisible,
-    isPublished: !!isPublished, 
+    isPublished: !!isPublished,
     activeAt: formatDateOrNull(activeAt),
     activeUntil: formatDateOrNull(activeUntil),
     reservedUntil: formatDateOrNull(reservedUntil),

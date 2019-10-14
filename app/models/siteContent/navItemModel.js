@@ -10,14 +10,14 @@ navItem.findById = (db, id, published) => {
   return db.one(`SELECT * FROM nav_item 
     WHERE nav_item_id = $1 
     ${!isNil(published)
-      ? ` AND (nav_item_data->>'isPublished')::boolean = true`
-      : ''}
+    ? ` AND (nav_item_data->>'isPublished')::boolean = true`
+    : ''}
     ORDER BY nav_item_id`, id)
 }
 
-navItem.findAll = (db, published) => db.any(`SELECT * FROM nav_item ${!isNil(published) 
-    ? `WHERE (nav_item_data->>'isPublished')::boolean = true` 
-    : ''}
+navItem.findAll = (db, published) => db.any(`SELECT * FROM nav_item ${!isNil(published)
+  ? `WHERE (nav_item_data->>'isPublished')::boolean = true`
+  : ''}
     ORDER BY nav_item_id`)
 
 navItem.save = (db, data, id) => id ? update(db, data, id) : create(db, data)

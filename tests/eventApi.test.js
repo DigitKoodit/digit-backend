@@ -53,7 +53,7 @@ describe('Event API', () => {
       const completelyHiddenEventId = 3
       const response = await api.get(`/api/events/${completelyHiddenEventId}`)
         .expect(404)
-        expect(response.body).toEqual(responseSingmeEventNotFound)
+      expect(response.body).toEqual(responseSingmeEventNotFound)
     })
 
     test('GET /api/events/:visibleNotPublicEventId should return status event', async () => {
@@ -62,7 +62,7 @@ describe('Event API', () => {
       const visibleNotPublicEventId = 4
       const response = await api.get(`/api/events/${visibleNotPublicEventId}`)
         .expect(200)
-        expect(response.body).toEqual(eventsAtStart[3])
+      expect(response.body).toEqual(eventsAtStart[3])
     })
 
     test('GET /api/events/:publicNotVisibleEventId should return status event', async () => {
@@ -70,14 +70,13 @@ describe('Event API', () => {
       const publicNotVisibleEventId = 5
       const response = await api.get(`/api/events/${publicNotVisibleEventId}`)
         .expect(200)
-        expect(response.body).toEqual(eventsAtStart[4])
+      expect(response.body).toEqual(eventsAtStart[4])
     })
   })
 
-
   describe('User is not authenticated', () => {
     test('GET /api/intra/events should return status 401', async () => {
-       api.get('/api/intra/events')
+      api.get('/api/intra/events')
         .expect(401)
     })
   })

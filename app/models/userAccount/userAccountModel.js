@@ -48,7 +48,6 @@ const update = (db, data, id) => {
   return db.one(sql, params)
 }
 
-
 const fetchUserForRegistration = (db, { email, username, registrationToken }) => {
   const whereSql = registrationToken ? 'email = $[email] AND registration_token = $[registrationToken]' : '(email = $[email] OR username = $[username]) AND registration_token IS NULL'
   const where = pgp.as.format(whereSql, { email, username, registrationToken })

@@ -15,7 +15,7 @@ router.get('/:sitePageId', (req, res) =>
   res.send(decorate(req.resultRow)))
 
 router.post('/', validateCreate(), (req, res) => {
-  let newItem = {
+  const newItem = {
     ...req.body
   }
   return save(req.db, newItem)
@@ -45,8 +45,6 @@ publicRouter.param('sitePageId', findPageById)
 
 publicRouter.get('/:sitePageId', (req, res) =>
   res.send(decorate(req.resultRow)))
-
-
 
 module.exports = {
   router,

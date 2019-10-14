@@ -11,16 +11,16 @@ SitePage.findById = (db, id, published) => {
   return db.one(`SELECT * FROM site_page 
     WHERE site_page_id = ${id}
     ${!isNil(published)
-      ? ` AND (site_page_data->>'published')::boolean = true`
-      : ''}
+    ? ` AND (site_page_data->>'published')::boolean = true`
+    : ''}
     ORDER BY site_page_id`)
 }
 
 SitePage.findAll = (db, published) =>
   db.any(`SELECT * FROM site_page 
   ${!isNil(published)
-      ? ` WHERE (site_page_data->>'published')::boolean = true`
-      : ''}
+    ? ` WHERE (site_page_data->>'published')::boolean = true`
+    : ''}
     ORDER BY site_page_id`)
 
 SitePage.save = (db, data, id) => id ? update(db, data, id) : create(db, data)

@@ -11,13 +11,11 @@ router.get('/', (req, res) =>
     .then(decorateList)
     .then(result => res.send(result)))
 
-
 router.get('/:eventId', (req, res) =>
   res.send(decorate(req.resultRow)))
 
-
 router.post('/', validateCreate(), (req, res) => {
-  let newItem = {
+  const newItem = {
     ...req.body
   }
   return save(req.db, newItem)
@@ -56,7 +54,6 @@ publicRouter.param('eventId', findPublicEventById)
 
 router.use('/:eventId/enrolls', require('./enroll').router)
 publicRouter.use('/:eventId/enrolls', require('./enroll').publicRouter)
-
 
 module.exports = {
   router,

@@ -25,7 +25,7 @@ const createNewEnroll = req =>
       const previousEnrolls = decorateList(previousEnrollResults)
       isEnrollPossible(event, previousEnrolls)
       const enroll = req.body
-      let newEnroll = {
+      const newEnroll = {
         ...enroll,
         isSpare: determineIsSpare(event, previousEnrolls, enroll)
       }
@@ -69,13 +69,11 @@ router.delete('/:eventEnrollId', (req, res) => {
             return true
           }
         }
-        return
       })
       .then(wasSomethingUpdated => {
         if(!wasSomethingUpdated) {
           return recalculateSpareEnrolls(txDb, event.id)
         }
-        return
       }))
     .then(() => res.status(204).send())
 })
@@ -96,7 +94,6 @@ publicRouter.post('/', validateCreate(), (req, res) =>
   createNewEnroll(req)
     .then(decoratePublic)
     .then(result => res.status(201).send(result)))
-
 
 publicRouter.param('eventEnrollId', findEventEnrollById)
 

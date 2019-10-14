@@ -16,9 +16,9 @@ const sqlQueries = [
   {
     query: 'INSERT INTO user_role (user_role_data) VALUES($1)',
     values: [
-      [{ name: 'admin', 'accessLevel': 1 }],
-      [{ name: 'user', 'accessLevel': 2 }],
-      [{ name: 'visitor', 'accessLevel': 3 }]
+      [{ name: 'admin', accessLevel: 1 }],
+      [{ name: 'user', accessLevel: 2 }],
+      [{ name: 'visitor', accessLevel: 3 }]
     ]
   },
   `ALTER TABLE user_account ADD COLUMN user_role_id INT NOT NULL REFERENCES user_role ON DELETE RESTRICT ON UPDATE CASCADE DEFAULT 3`

@@ -18,7 +18,7 @@ const findPageById = (req, _, next, value) =>
     })
 
 router.post('/', validateCreate(), (req, res) => {
-  let newItem = {
+  const newItem = {
     ...req.body
   }
   return save(newItem)
@@ -37,7 +37,7 @@ router.put('/:sponsorId', validateUpdate(), (req, res) => {
 router.delete('/:sponsorId', (req, res) => {
   const { sponsorId } = req.params
   return remove(sponsorId)
-    .then(id => res.status(204).send())
+    .then(() => res.status(204).send())
 })
 
 router.param('sponsorId', findPageById)

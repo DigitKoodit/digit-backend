@@ -19,7 +19,7 @@ event.findByIdPublic = (db, id) => {
   }
   return db.one(`SELECT * FROM event WHERE event_id = $[id]
       AND ((event_data->>'isVisible')::boolean OR (event_data->>'isPublished')::boolean)`,
-    { id, currentTime: moment().format() })
+  { id, currentTime: moment().format() })
     .catch(error => {
       throw new NotFound('Event not found', error)
     })
@@ -29,7 +29,7 @@ event.findAll = (db, activeOnly) => {
   return db.any(`SELECT * FROM event ${!isNil(activeOnly)
     ? `WHERE ((event_data->>'isVisible')::boolean OR (event_data->>'isPublished')::boolean)`
     : ''}`,
-    { currentTime: moment().format() })
+  { currentTime: moment().format() })
 }
 
 event.save = (db, data, id) => id ? update(db, data, id) : create(db, data)
