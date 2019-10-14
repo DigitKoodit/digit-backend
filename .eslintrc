@@ -5,7 +5,7 @@
     "jest": true,
     "es6": true
   },
-  "extends": "eslint:recommended",
+  "extends": "standard",
   "parserOptions": {
     "ecmaVersion": 2018
   },
@@ -14,15 +14,58 @@
       "error",
       2,
       {
-        "switch-case": 1
+        "SwitchCase": 1
       }
     ],
-    "linebreak-style": ["error", "unix"],
-    "quotes": ["error", "single"],
-    "semi": ["error", "never"],
+    "linebreak-style": [
+      "error",
+      "unix"
+    ],
+    "quotes": [
+      "error",
+      "single",
+      {
+        "allowTemplateLiterals": true
+      }
+    ],
+    "semi": [
+      "error",
+      "never"
+    ],
     "eqeqeq": "error",
     "no-trailing-spaces": "error",
-    "object-curly-spacing": ["error", "always"],
+    "keyword-spacing": [
+      "error",
+      {
+        "after": true,
+        "before": true,
+        "overrides": {
+          "if": {
+            "after": false
+          },
+          "for": {
+            "after": false
+          },
+          "while": {
+            "after": false
+          },
+          "switch": {
+            "after": false
+          },
+          "catch": {
+            "after": false
+          }
+        }
+      }
+    ],
+    "space-before-function-paren": [
+      "error",
+      "never"
+    ],
+    "object-curly-spacing": [
+      "error",
+      "always"
+    ],
     "arrow-spacing": [
       "error",
       {
@@ -30,6 +73,34 @@
         "after": true
       }
     ],
-    "no-console": 0
-  }
+    "no-unused-vars": [
+      "error",
+      {
+        "varsIgnorePattern": "^__",
+        "argsIgnorePattern": "^__",
+        "caughtErrorsIgnorePattern": "^__"
+      }
+    ],
+    "no-console": [
+      "warn",
+      {
+        "allow": [
+          "warn",
+          "error"
+        ]
+      }
+    ],
+  },
+  "overrides": [
+    {
+      "files": [
+        "bin/*.js",
+        "stuff/*.js",
+        "db/migrate.js"
+      ],
+      "rules": {
+        "no-console": 0
+      }
+    }
+  ]
 }
