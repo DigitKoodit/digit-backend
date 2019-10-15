@@ -1,4 +1,4 @@
-const { checkSchema } = require('express-validator/check')
+const { checkSchema } = require('express-validator')
 const { getValidator, getBooleanValidator, getIntValidator, getStringValidator, setIsOptional, getArrayValidator } = require('../../helpers/validatorHelpers')
 
 const idSchema = {

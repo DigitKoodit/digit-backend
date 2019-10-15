@@ -1,5 +1,4 @@
-const { validationResult } = require('express-validator/check')
-const { matchedData } = require('express-validator/filter')
+const { validationResult, matchedData } = require('express-validator')
 const pick = require('lodash/pick')
 const keys = require('lodash/keys')
 const createError = require('http-errors')

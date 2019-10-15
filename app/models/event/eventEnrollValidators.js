@@ -1,4 +1,4 @@
-const { checkSchema } = require('express-validator/check')
+const { checkSchema } = require('express-validator')
 const isEmpty = require('lodash/isEmpty')
 const isObject = require('lodash/isObject')
 const { getValidator } = require('../../helpers/validatorHelpers')
