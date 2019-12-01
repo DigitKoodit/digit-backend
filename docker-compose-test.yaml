@@ -22,7 +22,7 @@ services:
       PGHOST: dbtest
     command: /bin/sh -c "node db/migrate-up && tail -f /dev/null"
   dbtest:
-    image: postgres
+    image: postgres:11
     container_name: digit_db_test
     restart: always
     networks: 

@@ -1,4 +1,4 @@
-FROM node:12.10.0-alpine AS test
+FROM node:12.13.1-alpine AS test
 
 RUN apk add tzdata && \
   cp /usr/share/zoneinfo/Europe/Helsinki /etc/localtime && \
