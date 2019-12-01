@@ -56,11 +56,8 @@ Open a bash session on a running container:\
 
 ### Testing
 
-Testing can be performed by starting additional test container:\
-`docker-compose -f docker-compose-test.yaml up -d`
-
-Run tests:\
-`docker container exec -it digit_backend_test npm test`
+Testing can be performed by running tests in a additional test container:\
+`docker-compose -f docker-compose-test.yaml run --rm backendtest npm test`
 
 > Running cli options requires two dashes between npm script and `Jest` command: `npm test -- <command>`
 > See Jest's [documents](https://jestjs.io/docs/en/cli.html) page
