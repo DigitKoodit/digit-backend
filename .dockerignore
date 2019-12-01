@@ -1,7 +1,8 @@
 node_modules
 npm-debug.log
 Dockerfile
-docker-compose.yaml
+docker-compose*.yaml
 .dockerignore
 stuff
 ubuntu*
+.git

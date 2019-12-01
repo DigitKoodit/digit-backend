@@ -1,11 +1,12 @@
-version: '3.5'
+version: '3.7'
 
 services:
   backendtest:
     container_name: digit_backend_test  
     build:
-      context: ./
+      context: .
       dockerfile: Dockerfile-test
+      target: test
     volumes:
       - .:/home/node
       - nodemodulestest:/home/node/node_modules

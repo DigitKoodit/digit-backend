@@ -1,14 +1,15 @@
-FROM node:12.10.0-alpine
+FROM node:12.10.0-alpine AS test
 
 RUN apk add tzdata && \
   cp /usr/share/zoneinfo/Europe/Helsinki /etc/localtime && \
-  echo "Europe/Helsinki" > /etc/timezone
+  echo "Europe/Helsinki" > /etc/timezone && \
+  apk add git
 
 RUN mkdir -p /home/node && chown -R node:node /home/node
 
 WORKDIR /home/node
 COPY package*.json ./
 USER node
-RUN npm install --no-optional
+RUN npm install
 
 COPY --chown=node:node . .
