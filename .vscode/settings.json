@@ -16,7 +16,4 @@
   },
   "emmet.showExpandedAbbreviation": "inMarkupAndStylesheetFilesOnly",
   "search.location": "sidebar",
-  "editor.codeActionsOnSave": {
-    "source.fixAll.eslint": true
-  },
 }
