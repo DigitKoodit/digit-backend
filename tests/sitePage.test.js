@@ -31,9 +31,10 @@ describe('Site page API', () => {
   })
 
   describe('User is not authenticated', () => {
-    test('GET /api/intra/pages should return status 401', async() => {
+    test('GET /api/intra/pages should return status 401', async(done) => {
       api.get('/api/intra/pages')
         .expect(401)
+        .end(done)
     })
   })
 

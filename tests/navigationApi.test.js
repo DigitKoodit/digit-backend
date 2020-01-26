@@ -22,9 +22,10 @@ describe('Navigation API', () => {
   })
 
   describe('User is not authenticated', () => {
-    test('GET /api/intra/navigation should return status 401', async() => {
+    test('GET /api/intra/navigation should return status 401', async(done) => {
       api.get('/api/intra/navigation')
         .expect(401)
+        .end(done)
     })
     test('GET /api/intra/navigation should return status 200 and values', async() => {
       const navItemsAtStart = await navItemsInDb(db, getPublished)

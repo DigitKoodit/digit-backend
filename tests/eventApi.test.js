@@ -74,9 +74,10 @@ describe('Event API', () => {
   })
 
   describe('User is not authenticated', () => {
-    test('GET /api/intra/events should return status 401', async() => {
+    test('GET /api/intra/events should return status 401', async(done) => {
       api.get('/api/intra/events')
         .expect(401)
+        .end(done)
     })
   })
 

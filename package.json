@@ -6,6 +6,7 @@
   "scripts": {
     "start": "node ./bin/index.js",
     "test": "NODE_ENV=test jest  --runInBand --watchAll",
+    "test-ci": "NODE_ENV=test jest  --runInBand --ci",
     "lint": "eslint app migrations"
   },
   "author": "niemisami",

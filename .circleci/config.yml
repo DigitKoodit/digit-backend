@@ -3,8 +3,38 @@ jobs:
   build:
     working_directory: ~/tmp
     docker:
-      - image: node:9.7.1-alpine
+      - image: circleci/node
+        environment:
+          PGHOST: 127.0.0.1
+          PGUSER: ${DBUSER}
+          NODE_ENV: test
+          TEST_PORT: 3031
+          TEST_JWT_TOKEN: ${JWT_TEST_TOKEN}
+          TEST_SECRET_KEY: ${JWT_SECRET_KEY}
+          TZ: "Europe/Helsinki"
+      - image: circleci/postgres:11-alpine
+        environment:
+          POSTGRES_USER: ${DBUSER}
+          POSTGRES_PASSWORD: ${DBPASSWORD}
+          POSTGRES_DB: digit_testing
+        
     steps: 
       - checkout
-      - run: npm install
-      - run: npm test
+      - restore_cache: # special step to restore the dependency cache
+          # Read about caching dependencies: https://circleci.com/docs/2.0/caching/
+          key: dependency-cache-{{ checksum "package-lock.json" }}
+      - run:
+          name: Install dependencies
+          command: npm install
+      - save_cache: # special step to save the dependency cache
+          key: dependency-cache-{{ checksum "package-lock.json" }}
+          paths:
+            - ./node_modules
+      # Wait for database to open
+      - run: dockerize -wait tcp://localhost:5432 -timeout 1m
+      - run: 
+          name: Migrate database
+          command: node db/migrate-up
+      - run:
+          name: Run tests
+          command: npm run test-ci
