@@ -14,8 +14,7 @@ services:
       - '9230:9230'
     depends_on:
       - db
-    entrypoint: pm2-runtime
-    command: ['digit_dev.config.js']
+    command: ['pm2-runtime','digit_dev.config.js']
   db:
     image: postgres
     container_name: digit_db
@@ -25,4 +24,4 @@ services:
       POSTGRES_PASSWORD: digit
       POSTGRES_DB: digit_dev
     ports:
-      - '5432:5432'
+      - '5432:5432' 

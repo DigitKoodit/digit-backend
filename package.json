@@ -6,7 +6,9 @@
   "scripts": {
     "start": "node ./bin/index.js",
     "test": "NODE_ENV=test jest  --runInBand --watchAll",
-    "lint": "eslint app migrations"
+    "lint": "eslint app migrations",
+    "db": "docker-compose run --rm db psql -U digit -h db digit_testing",
+    "db:test": "docker-compose -f docker-compose-test.yaml run --rm dbtest psql -U digit -h dbtest digit_testing"
   },
   "author": "niemisami",
   "license": "MIT",
