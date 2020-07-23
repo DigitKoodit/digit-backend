@@ -6,11 +6,14 @@ const { decorate, decorateList, decoratePublic, decoratePublicList } = require('
 const { findById, findAll, save, remove, recalculateSpareEnrolls, recalculateSpareEnrollWithLimitedField } = require('../../../models/event/eventEnrollModel')
 const { decorate: decorateEvent } = require('../../../models/event/eventDecorators')
 const { findByIdToResultRow } = require('../../../helpers/helpers')
-const { isEnrollPossible, determineIsSpare, hasStillLimits, getLimitedFieldIfEnrollMatch, hasLimitedFields } = require('../../../models/event/enrollHelpers')
+const { isEnrollPossible, hasStillLimits, getLimitedFieldIfEnrollMatch, hasLimitedFields, calculateSpareParticipants } = require('../../../models/event/enrollHelpers')
 
 router.get('/', (req, res) =>
   findAll(req.db, req.params.eventId)
     .then(decorateList)
+    .then(enrolls =>
+      calculateSpareParticipants(req.resultRow.event_data, enrolls)
+    )
     .then(result => res.send(result)))
 
 router.post('/', validateCreate(), (req, res) =>
@@ -26,8 +29,7 @@ const createNewEnroll = req =>
       isEnrollPossible(event, previousEnrolls)
       const enroll = req.body
       const newEnroll = {
-        ...enroll,
-        isSpare: determineIsSpare(event, previousEnrolls, enroll)
+        ...enroll
       }
       return save(req.db, req.params.eventId, newEnroll)
     })
@@ -56,7 +58,7 @@ router.delete('/:eventEnrollId', (req, res) => {
   return req.startTx(txDb =>
     remove(txDb, eventEnrollId)
       .then(() => {
-        // TODO: when and how to clear all spare spots?
+        // TODO: fetch enrolls before and after removal. Then compare and possibly send messages to people who have gained real spot
         if(hasStillLimits(event)) {
           if(hasLimitedFields(event.fields)) {
             const [fieldName, fieldValue] = getLimitedFieldIfEnrollMatch(event, removableEnroll)
@@ -85,6 +87,9 @@ router.param('eventEnrollId', findEventEnrollById)
 publicRouter.get('/', (req, res) =>
   findAll(req.db, req.params.eventId, true)
     .then(decoratePublicList)
+    .then(enrolls =>
+      calculateSpareParticipants(req.resultRow.event_data, enrolls)
+    )
     .then(result => res.send(result)))
 
 publicRouter.get('/:eventEnrollId', (req, res) =>

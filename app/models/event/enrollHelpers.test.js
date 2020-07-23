@@ -1,7 +1,8 @@
 const moment = require('moment')
 const lolex = require('lolex')
 const { BadRequest, Forbidden } = require('http-errors')
-const { isEnrollPossible, determineIsSpare, getLimitedFieldIfEnrollMatch, getLimitedFields } = require('./enrollHelpers')
+const { isEnrollPossible, determineIsSpare, getLimitedFieldIfEnrollMatch, getLimitedFields, calculateSpareParticipants } = require('./enrollHelpers')
+const { updateArrayWithOverrides } = require('../../helpers/helpers')
 
 describe('Enroll helpers', () => {
   let fakeClock
@@ -88,7 +89,7 @@ describe('Enroll helpers', () => {
     }
   }
 
-  beforeEach(async() => {
+  beforeEach(async () => {
     setDate(initialStartTime)
   })
 
@@ -96,17 +97,24 @@ describe('Enroll helpers', () => {
     fakeClock.uninstall()
   })
 
-  describe('determineIsSpare', () => {
+  describe('calculateSpareParticipants', () => {
     describe('Event has space', () => {
       it('should return false when regular space left', () => {
         const oneRegularSpaceLeftEnrolls = [
-          { id: 1, isSpare: false, createdAt: mostEnrolledAt, values: { firstName: 'Name1', radio: 'optionA' } },
-          { id: 2, isSpare: false, createdAt: mostEnrolledAt, values: { firstName: 'Name2', radio: 'optionA' } },
-          { id: 3, isSpare: false, createdAt: mostEnrolledAt, values: { firstName: 'Name3', radio: 'optionA' } },
-          { id: 4, isSpare: false, createdAt: mostEnrolledAt, values: { firstName: 'Name4', radio: 'optionB' } }
+          { id: 1, createdAt: mostEnrolledAt, values: { firstName: 'Name1', radio: 'optionA' } },
+          { id: 2, createdAt: mostEnrolledAt, values: { firstName: 'Name2', radio: 'optionA' } },
+          { id: 3, createdAt: mostEnrolledAt, values: { firstName: 'Name3', radio: 'optionA' } },
+          { id: 4, createdAt: mostEnrolledAt, values: { firstName: 'Name4', radio: 'optionB' } }
+          { id: 4, createdAt: mostEnrolledAt, values: { firstName: 'Name4', radio: 'optionB' } }
         ]
-        const isSpare = determineIsSpare(simpleEvent, oneRegularSpaceLeftEnrolls, dummyEnroll)
-        expect(isSpare).toBe(false)
+        const expectedResult = updateArrayWithOverrides(oneRegularSpaceLeftEnrolls, [
+          { isSpare: false },
+          { isSpare: false },
+          { isSpare: false },
+          { isSpare: false },
+          { isSpare: false }
+        ])
+        expect(calculateSpareParticipants(simpleEvent, oneRegularSpaceLeftEnrolls)).toEqual(expectedResult)
       })
       it('should return true when no option "optionB" limit is reached', () => {
         const optionBLimitReachedEnrolls = [
@@ -182,6 +190,24 @@ describe('Enroll helpers', () => {
       })
     })
     describe(`Event does not have space`, () => {
+      it('calculateSpareParticipants', () => {
+        const expectedResult = [
+          { id: 1, isSpare: false, createdAt: mostEnrolledAt, values: { firstName: 'Name1', radio: 'optionA' } },
+          { id: 2, isSpare: false, createdAt: mostEnrolledAt, values: { firstName: 'Name2', radio: 'optionA' } },
+          { id: 3, isSpare: false, createdAt: mostEnrolledAt, values: { firstName: 'Name3', radio: 'optionB' } },
+          { id: 4, isSpare: false, createdAt: mostEnrolledAt, values: { firstName: 'Name4', radio: 'optionB' } },
+          { id: 5, isSpare: true, createdAt: mostEnrolledAt, values: { firstName: 'Name5', radio: 'optionB' } }
+        ]
+        const optionBLimitReachedEnrolls = [
+          { id: 1, createdAt: mostEnrolledAt, values: { firstName: 'Name1', radio: 'optionA' } },
+          { id: 2, createdAt: mostEnrolledAt, values: { firstName: 'Name2', radio: 'optionA' } },
+          { id: 3, createdAt: mostEnrolledAt, values: { firstName: 'Name3', radio: 'optionB' } },
+          { id: 4, createdAt: mostEnrolledAt, values: { firstName: 'Name4', radio: 'optionB' } },
+          { id: 5, createdAt: mostEnrolledAt, values: { firstName: 'Name5', radio: 'optionB' } }
+        ]
+        expect(calculateSpareParticipants(simpleEvent, optionBLimitReachedEnrolls)).toEqual(expectedResult)
+      })
+
       it('should return true when no regular space left', () => {
         const noRegularSpaceLeftEnrolls = [
           { id: 1, isSpare: false, createdAt: mostEnrolledAt, values: { firstName: 'Name1', radio: 'optionA' } },
@@ -359,7 +385,7 @@ describe('Enroll helpers', () => {
         ).toThrow(Forbidden)
       })
     })
-    describe('enrolling after event has started', () => {
+    describe('enrolling after event has ended', () => {
       it('should throw Forbidden error', () => {
         const dummyPreviousEnrolls = [dummyEnroll]
         const timeAfterEventEndTime = moment(eventActiveUntil).add(1, 'minute').format()
@@ -372,7 +398,7 @@ describe('Enroll helpers', () => {
     describe('enrolling to a full event after it has started', () => {
       it('should throw BadRequest error', () => {
         const maxEnrolls = 8
-        const enrolls = Array.apply(null, { length: maxEnrolls }).map(__ => dummyEnroll)
+        const enrolls = Array(maxEnrolls).fill(dummyEnroll)
         const timeAfterEventStartTime = moment(eventActiveAt).add(1, 'minute').format()
         setDate(timeAfterEventStartTime)
         expect(() =>
@@ -414,6 +440,7 @@ describe('Enroll helpers', () => {
           optionC: 5
         }
       }
+      console.log(getLimitedFields(simpleEvent.fields))
       expect(getLimitedFields(simpleEvent.fields)).toEqual(expectedResult)
     })
     it('should return object with null values when fields does not have reserve count', () => {
