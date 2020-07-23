@@ -1,46 +1,36 @@
-const filter = require('lodash/filter')
 const moment = require('moment')
+const { sortByCreatedAt } = require('../../helpers/helpers')
 
 const decoratePublic = eventEnroll => {
   const { event_enroll_id: id, event_id: eventId, event_enroll_data: eventEnrollData, fields } = eventEnroll
-  const { isSpare, values = {}, createdAt } = eventEnrollData
-  const publicValues = filter(fields, 'public')
+  const { values = {}, createdAt } = eventEnrollData
+  const publicValues = fields.filter(field => field.public)
     .reduce((acc, field) =>
       ({ ...acc, [field.name]: values[field.name] }), {})
   return {
     id,
     eventId,
     values: publicValues,
-    isSpare,
     createdAt: moment(createdAt).format()
   }
 }
 
 const decorate = eventEnroll => {
   const { event_enroll_id: id, event_id: eventId, event_enroll_data: eventEnrollData } = eventEnroll
-  const { isSpare = false, values, createdAt } = eventEnrollData
+  const { values, createdAt } = eventEnrollData
   return {
     id,
     eventId,
     values,
-    isSpare,
     createdAt: moment(createdAt).format()
   }
 }
 
-const decorateList = events =>
-  events.map(decorate).sort((a, b) =>
-    moment(a.createdAt).isBefore(b.createdAt)
-      ? -1
-      : 1
-  )
+const decorateList = eventEnrolls =>
+  eventEnrolls.map(decorate).sort(sortByCreatedAt)
 
-const decoratePublicList = events =>
-  events.map(decoratePublic).sort((a, b) =>
-    moment(a.createdAt).isBefore(b.createdAt)
-      ? -1
-      : 1
-  )
+const decoratePublicList = eventEnrolls =>
+  eventEnrolls.map(decoratePublic).sort(sortByCreatedAt)
 
 module.exports = {
   decorate,

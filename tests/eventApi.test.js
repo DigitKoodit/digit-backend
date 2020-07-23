@@ -1,7 +1,6 @@
 
-const lolex = require('lolex')
 const { db } = require('../db/pgp')
-const { initializeApi, closeApi, getJwtToken } = require('./testHelpers')
+const { initializeTests, cleanupTests } = require('./testHelpers')
 const { insertInitialEvents, eventsInDb, removeAllFromDb } = require('./eventHelpers')
 let api
 let jwtToken
@@ -9,24 +8,13 @@ const responseInvalidEventId = { message: 'Event id must be integer' }
 const responseSingmeEventNotFound = { message: 'Event not found' }
 const currentDate = '2019-01-30T12:00:00+02:00'
 
-let fakeClock
-const setDate = dateString => {
-  fakeClock = lolex.install({
-    now: new Date(dateString),
-    toFake: ['Date']
-  })
-}
-
 beforeAll(async() => {
-  api = await initializeApi()
-  jwtToken = await getJwtToken(db)
-  setDate(currentDate)
+  const setup = await initializeTests(db, currentDate)
+  api = setup.api
+  jwtToken = setup.jwtToken
 })
 
-afterAll(() => {
-  closeApi()
-  fakeClock.uninstall()
-})
+afterAll(cleanupTests)
 
 describe('Event API', () => {
   beforeEach(async() => {

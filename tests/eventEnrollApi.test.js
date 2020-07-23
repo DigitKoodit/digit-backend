@@ -1,7 +1,6 @@
-const lolex = require('lolex')
 const moment = require('moment')
 const { db } = require('../db/pgp')
-const { initializeApi, closeApi, getJwtToken } = require('./testHelpers')
+const { initializeTests, cleanupTests } = require('./testHelpers')
 
 const {
   insertInitialEventEnrolls,
@@ -18,26 +17,14 @@ const eventId = 1
 const complexEventId = 2
 const responseInvalidEnrollId = { message: 'Event enroll id must be integer' }
 const currentDate = '2019-01-30T12:00:00+02:00'
-let fakeClock
-
-const setDate = dateString => {
-  fakeClock = lolex.install({
-    now: new Date(dateString),
-    toFake: ['Date']
-  })
-}
 
 beforeAll(async() => {
-  api = await initializeApi()
-  jwtToken = await getJwtToken(db)
-
-  setDate(currentDate)
+  const setup = await initializeTests(db, currentDate)
+  api = setup.api
+  jwtToken = setup.jwtToken
 })
 
-afterAll(() => {
-  closeApi()
-  fakeClock.uninstall()
-})
+afterAll(cleanupTests)
 
 describe('Event enroll API', () => {
   beforeAll(async() => {
@@ -262,7 +249,7 @@ describe('Event enroll API', () => {
   describe('Private API', () => {
     describe('User is not authenticated', () => {
       test('GET /api/intra/events/:eventId/enrolls should return status 401', async() => {
-        const response = await api.get(`/api/intra/events/${eventId}/enrolls`)
+        await api.get(`/api/intra/events/${eventId}/enrolls`)
           .expect(401)
       })
     })
@@ -372,7 +359,7 @@ describe('Event enroll API', () => {
                 eventEnrollData: {
                   createdAt: moment(currentDate).add('5', 'minutes').format(),
                   updatedAt: null,
-                  isSpare: false,
+                  // isSpare: false,
                   values: {
                     etunimi: 'Name1',
                     radio: 'option-a'
@@ -384,7 +371,7 @@ describe('Event enroll API', () => {
                 eventEnrollData: {
                   createdAt: moment(currentDate).add('15', 'minutes').format(),
                   updatedAt: null,
-                  isSpare: false,
+                  // isSpare: false,
                   values: {
                     etunimi: 'Name2',
                     radio: 'option-b'
@@ -396,7 +383,7 @@ describe('Event enroll API', () => {
                 eventEnrollData: {
                   createdAt: moment(currentDate).add('20', 'minutes').format(),
                   updatedAt: null,
-                  isSpare: true,
+                  // isSpare: true,
                   values: {
                     etunimi: 'Name3',
                     radio: 'option-a'
@@ -498,7 +485,7 @@ describe('Event enroll API', () => {
                 eventEnrollData: {
                   createdAt: moment(currentDate).add('5', 'minutes').format(),
                   updatedAt: null,
-                  isSpare: false,
+                  // isSpare: false,
                   values: {
                     etunimi: 'Name1',
                     radio: 'option-a'
@@ -510,7 +497,7 @@ describe('Event enroll API', () => {
                 eventEnrollData: {
                   createdAt: moment(currentDate).add('15', 'minutes').format(),
                   updatedAt: null,
-                  isSpare: false,
+                  // isSpare: false,
                   values: {
                     etunimi: 'Name2',
                     radio: 'option-b'
@@ -522,7 +509,7 @@ describe('Event enroll API', () => {
                 eventEnrollData: {
                   createdAt: moment(currentDate).add('20', 'minutes').format(),
                   updatedAt: null,
-                  isSpare: true,
+                  // isSpare: true,
                   values: {
                     etunimi: 'Name3',
                     radio: 'option-a'

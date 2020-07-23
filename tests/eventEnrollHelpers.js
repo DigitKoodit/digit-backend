@@ -9,7 +9,7 @@ const initialEventEnrolls = [
     eventEnrollData: {
       createdAt: '2019-01-02T12:00:00+02:00',
       updatedAt: null,
-      isSpare: false,
+      // isSpare: false,
       values: {
         etunimi: 'Test',
         sukunimi: 'Person'
@@ -22,7 +22,7 @@ const initialEventEnrolls = [
     eventEnrollData: {
       createdAt: '2019-01-02T13:00:00+02:00',
       updatedAt: null,
-      isSpare: false,
+      // isSpare: false,
       values: {
         etunimi: 'Bob',
         sukunimi: 'Uncle'
@@ -35,7 +35,7 @@ const initialEventEnrolls = [
     eventEnrollData: {
       createdAt: '2019-01-15T13:00:00+02:00',
       updatedAt: null,
-      isSpare: false,
+      // isSpare: false,
       values: {
         etunimi: 'Other',
         radio: 'option-a'

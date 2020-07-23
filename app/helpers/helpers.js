@@ -1,3 +1,4 @@
+const moment = require('moment')
 const mapValues = require('lodash/mapValues')
 const mapKeys = require('lodash/mapKeys')
 const isObject = require('lodash/isObject')
@@ -45,6 +46,20 @@ const partition = (arr, fn) =>
     },
     [[], []])
 
+const sortByProperty = property => (a, b) => a[property] < b[property] ? -1 : Number(a[property] > b[property])
+const sortById = sortByProperty('id')
+const sortByCreatedAt = (a, b) =>
+  a.createdAt === b.createdAt
+    ? 0
+    : moment(a.createdAt).isBefore(b.createdAt)
+      ? -1
+      : 1
+
+const updateArrayWithOverrides = (array, overrides) => array.map((item, index) => ({
+  ...item,
+  ...(overrides[index] || {})
+}))
+
 module.exports = {
   snakeToCamelCaseObject,
   camelCasifyKey,
@@ -53,5 +68,9 @@ module.exports = {
   nullify,
   logBody,
   findByIdToResultRow,
-  partition
+  partition,
+  sortByProperty,
+  sortById,
+  sortByCreatedAt,
+  updateArrayWithOverrides
 }
