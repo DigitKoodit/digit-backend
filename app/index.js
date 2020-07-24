@@ -59,7 +59,9 @@ app.use((req, res, next) => {
 // error handler
 app.use((err, req, res, __next) => {
   // Comment out next line if error message needed for tests etc
-  // console.error(JSON.stringify(err, null, 4), err)
+  if(!err.status) {
+    console.error(JSON.stringify(err, null, 4), err)
+  }
   res.status(err.status || 500)
   if(err.status === 400 || err.status === 401) {
     res.send({ message: err.message, validationErrors: err.data })

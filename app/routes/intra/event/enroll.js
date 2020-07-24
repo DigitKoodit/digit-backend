@@ -3,14 +3,17 @@ const publicRouter = require('express-promise-router')({ mergeParams: true })
 
 const { validateCreate, validateUpdate } = require('../../../models/event/eventEnrollValidators')
 const { decorate, decorateList, decoratePublic, decoratePublicList } = require('../../../models/event/eventEnrollDecorators')
-const { findById, findAll, save, remove, recalculateSpareEnrolls, recalculateSpareEnrollWithLimitedField } = require('../../../models/event/eventEnrollModel')
+const { findById, findAll, save, remove } = require('../../../models/event/eventEnrollModel')
 const { decorate: decorateEvent } = require('../../../models/event/eventDecorators')
 const { findByIdToResultRow } = require('../../../helpers/helpers')
-const { isEnrollPossible, determineIsSpare, hasStillLimits, getLimitedFieldIfEnrollMatch, hasLimitedFields } = require('../../../models/event/enrollHelpers')
+const { isEnrollPossible, calculateSpareParticipants, isOptionAvailable } = require('../../../models/event/enrollHelpers')
 
 router.get('/', (req, res) =>
   findAll(req.db, req.params.eventId)
     .then(decorateList)
+    .then(enrolls =>
+      calculateSpareParticipants(req.resultRow.event_data, enrolls)
+    )
     .then(result => res.send(result)))
 
 router.post('/', validateCreate(), (req, res) =>
@@ -22,14 +25,11 @@ const createNewEnroll = req =>
   findAll(req.db, req.params.eventId)
     .then(previousEnrollResults => {
       const event = decorateEvent(req.resultRow)
-      const previousEnrolls = decorateList(previousEnrollResults)
-      isEnrollPossible(event, previousEnrolls)
+      const previousEnrolls = calculateSpareParticipants(event, decorateList(previousEnrollResults))
       const enroll = req.body
-      const newEnroll = {
-        ...enroll,
-        isSpare: determineIsSpare(event, previousEnrolls, enroll)
-      }
-      return save(req.db, req.params.eventId, newEnroll)
+      isEnrollPossible(event, previousEnrolls)
+      isOptionAvailable(event, previousEnrolls, enroll)
+      return save(req.db, req.params.eventId, enroll)
     })
     .catch(error => {
       throw error
@@ -45,37 +45,38 @@ router.put('/:eventEnrollId', validateUpdate(), (req, res) => {
 
 router.delete('/:eventEnrollId', (req, res) => {
   const { eventEnrollId } = req.params
-  const removableEnroll = decorate(req.resultRow)
+  // const removableEnroll = decorate(req.resultRow)
 
-  if(removableEnroll.isSpare) {
-    return remove(req.db, eventEnrollId)
-      .then(() => res.status(204).send())
-  }
-  const event = decorateEvent(req.resultRowParent)
+  // if(removableEnroll.isSpare) {
+  //   return remove(req.db, eventEnrollId)
+  //     .then(() => res.status(204).send())
+  // }
+  // const event = decorateEvent(req.resultRowParent)
 
   return req.startTx(txDb =>
     remove(txDb, eventEnrollId)
-      .then(() => {
-        // TODO: when and how to clear all spare spots?
-        if(hasStillLimits(event)) {
-          if(hasLimitedFields(event.fields)) {
-            const [fieldName, fieldValue] = getLimitedFieldIfEnrollMatch(event, removableEnroll)
-            if(fieldName) {
-              return recalculateSpareEnrollWithLimitedField(txDb, event.id, fieldName, fieldValue)
-                .then(() => {
-                  return true
-                })
-            }
-            return true
-          }
-        }
-      })
-      .then(wasSomethingUpdated => {
-        if(!wasSomethingUpdated) {
-          return recalculateSpareEnrolls(txDb, event.id)
-        }
-      }))
-    .then(() => res.status(204).send())
+      // .then(() => {
+      //   // TODO: fetch enrolls before and after removal. Then compare and possibly send messages to people who have gained real spot
+      //   if(hasStillLimits(event)) {
+      //     if(hasLimitedFields(event.fields)) {
+      //       const [fieldName, fieldValue] = getLimitedFieldIfEnrollMatch(event.fields, removableEnroll)
+      //       if(fieldName) {
+      //         return recalculateSpareEnrollWithLimitedField(txDb, event.id, fieldName, fieldValue)
+      //           .then(() => {
+      //             return true
+      //           })
+      //       }
+      //       return true
+      //     }
+      //   }
+      // })
+      // .then(wasSomethingUpdated => {
+      //   if(!wasSomethingUpdated) {
+      //     return recalculateSpareEnrolls(txDb, event.id)
+      //   }
+      // }))
+      .then(() => res.status(204).send())
+  )
 })
 
 const findEventEnrollById = findByIdToResultRow('Event enroll', 'eventEnrollId', findById)
@@ -85,6 +86,9 @@ router.param('eventEnrollId', findEventEnrollById)
 publicRouter.get('/', (req, res) =>
   findAll(req.db, req.params.eventId, true)
     .then(decoratePublicList)
+    .then(enrolls =>
+      calculateSpareParticipants(req.resultRow.event_data, enrolls)
+    )
     .then(result => res.send(result)))
 
 publicRouter.get('/:eventEnrollId', (req, res) =>

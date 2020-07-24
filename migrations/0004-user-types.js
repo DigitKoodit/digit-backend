@@ -8,7 +8,8 @@ const insertDummyAdmin = () =>
       {
         query: `INSERT INTO user_account (username, email, password, user_role_id, active) VALUES ($1, $2, $3, $4, $5) ON CONFLICT (username) DO UPDATE SET user_role_id = 1`,
         values: [['admin', 'admin@admin.fi', hash, 1, true]]
-      }])
+      }
+    ])
 
 // Set visitor role to all user_accounts except already existing
 const sqlQueries = [

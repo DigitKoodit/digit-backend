@@ -1,7 +1,6 @@
-const lolex = require('lolex')
 const moment = require('moment')
 const { db } = require('../db/pgp')
-const { initializeApi, closeApi, getJwtToken } = require('./testHelpers')
+const { initializeTests, cleanupTests } = require('./testHelpers')
 
 const {
   insertInitialEventEnrolls,
@@ -11,6 +10,7 @@ const {
   removeAllFromDb
 } = require('./eventEnrollHelpers')
 const { insertInitialEvents, removeAllFromDb: removeAllEventsFromDb } = require('./eventHelpers')
+const { updateArrayWithOverrides } = require('../app/helpers/helpers')
 
 let api
 let jwtToken
@@ -18,26 +18,14 @@ const eventId = 1
 const complexEventId = 2
 const responseInvalidEnrollId = { message: 'Event enroll id must be integer' }
 const currentDate = '2019-01-30T12:00:00+02:00'
-let fakeClock
-
-const setDate = dateString => {
-  fakeClock = lolex.install({
-    now: new Date(dateString),
-    toFake: ['Date']
-  })
-}
 
 beforeAll(async() => {
-  api = await initializeApi()
-  jwtToken = await getJwtToken(db)
-
-  setDate(currentDate)
+  const setup = await initializeTests(db, currentDate)
+  api = setup.api
+  jwtToken = setup.jwtToken
 })
 
-afterAll(() => {
-  closeApi()
-  fakeClock.uninstall()
-})
+afterAll(cleanupTests)
 
 describe('Event enroll API', () => {
   beforeAll(async() => {
@@ -78,11 +66,14 @@ describe('Event enroll API', () => {
 
       test('GET /api/events/:eventId/enrolls should return status 200 and empty array ', async() => {
         const publicEventEnrollsAtStart = await eventEnrollsInDbByEvent(db, eventId, getPublic)
+        const expectedResults = updateArrayWithOverrides(publicEventEnrollsAtStart, [
+          { isSpare: false },
+          { isSpare: false }
+        ])
         const response = await api.get(`/api/events/${eventId}/enrolls`)
           .expect(200)
           .expect('Content-Type', /application\/json/)
-        expect(response.body.length).toBe(publicEventEnrollsAtStart.length)
-        expect(response.body).toEqual(expect.arrayContaining(publicEventEnrollsAtStart))
+        expect(response.body).toEqual(expect.arrayContaining(expectedResults))
       })
 
       describe(`Trying to enroll to a non existing event`, () => {
@@ -159,26 +150,34 @@ describe('Event enroll API', () => {
             .send(dummyEnrolls[0])
             .expect(201)
 
-          const eventEnrollsAtStart = await eventEnrollsInDb(db)
           const epxectedEnroll = {
             id: 5,
-            eventId: 2,
-            isSpare: true,
+            eventId: complexEventId,
             createdAt: currentDate,
             values: {
               etunimi: 'Name2',
               radio: 'option-a'
             }
           }
-          const response = await api.post(`/api/events/${complexEventId}/enrolls`)
+          const eventEnrollsAtStart = await eventEnrollsInDbByEvent(db, complexEventId, getPublic)
+          const expectedResults = updateArrayWithOverrides(eventEnrollsAtStart.concat(epxectedEnroll), [
+            { isSpare: false },
+            { isSpare: false },
+            { isSpare: true }
+          ])
+
+          const postResponse = await api.post(`/api/events/${complexEventId}/enrolls`)
             .send(dummyEnrolls[1])
             .expect(201)
             .expect('Content-Type', /application\/json/)
 
-          const eventEnrollsAfter = await eventEnrollsInDb(db)
-          expect(eventEnrollsAfter.length).toBe(eventEnrollsAtStart.length + 1)
+          expect(postResponse.body).toEqual(epxectedEnroll)
 
-          expect(response.body).toEqual(epxectedEnroll)
+          const getResponse = await api.get(`/api/events/${complexEventId}/enrolls`)
+            .expect(200)
+            .expect('Content-Type', /application\/json/)
+
+          expect(getResponse.body).toEqual(expect.arrayContaining(expectedResults))
         })
       })
 
@@ -262,7 +261,7 @@ describe('Event enroll API', () => {
   describe('Private API', () => {
     describe('User is not authenticated', () => {
       test('GET /api/intra/events/:eventId/enrolls should return status 401', async() => {
-        const response = await api.get(`/api/intra/events/${eventId}/enrolls`)
+        await api.get(`/api/intra/events/${eventId}/enrolls`)
           .expect(401)
       })
     })
@@ -300,34 +299,57 @@ describe('Event enroll API', () => {
 
         test('GET /api/intra/events/:eventId/enrolls should return status 200 and values', async() => {
           const eventEnrollsAtStart = await eventEnrollsInDbByEvent(db, eventId)
+          const expectedResults = updateArrayWithOverrides(eventEnrollsAtStart, [
+            { isSpare: false },
+            { isSpare: false },
+            { isSpare: false }
+          ])
+
           const response = await api.get(`/api/intra/events/${eventId}/enrolls`)
             .set('Authorization', jwtToken)
             .expect(200)
             .expect('Content-Type', /application\/json/)
           expect(response.body.length).toBe(eventEnrollsAtStart.length)
-          expect(response.body).toEqual(expect.arrayContaining(eventEnrollsAtStart))
+          expect(response.body).toEqual(expect.arrayContaining(expectedResults))
         })
 
         describe('Event enroll manipulation', () => {
           test('POST /api/intra/events/:eventId/enrolls creates new eventEnroll', async() => {
-            const eventEnrollsAtStart = await eventEnrollsInDb(db)
+            const eventEnrollsAtStart = await eventEnrollsInDbByEvent(db, eventId)
             const newEventEnroll = {
               values: {
                 etunimi: 'First name',
                 sukunimi: 'Surname'
               }
             }
+            const epxectedEnroll = {
+              id: 4,
+              eventId,
+              createdAt: currentDate,
+              values: {
+                etunimi: 'First name',
+                sukunimi: 'Surname'
+              }
+            }
+            const expectedResults = updateArrayWithOverrides(eventEnrollsAtStart.concat(epxectedEnroll), [
+              { isSpare: false },
+              { isSpare: false },
+              { isSpare: false }
+            ])
+
             const response = await api.post(`/api/intra/events/${eventId}/enrolls`)
               .set('Authorization', jwtToken)
               .send(newEventEnroll)
               .expect(201)
               .expect('Content-Type', /application\/json/)
 
-            const eventEnrollsAfter = await eventEnrollsInDb(db)
-            expect(eventEnrollsAfter.length).toBe(eventEnrollsAtStart.length + 1)
-            const newDbEntry = eventEnrollsAfter[eventEnrollsAfter.length - 1]
+            expect(response.body).toEqual(epxectedEnroll)
 
-            expect(response.body).toEqual(newDbEntry)
+            const getResponse = await api.get(`/api/events/${eventId}/enrolls`)
+              .expect(200)
+              .expect('Content-Type', /application\/json/)
+
+            expect(getResponse.body).toEqual(expect.arrayContaining(expectedResults))
           })
           test('PUT /api/intra/events/:eventId/enrolls/:eventEnrollId response with 404', async() => {
             const eventEnrollsAtStart = await eventEnrollsInDbByEvent(db, eventId)
@@ -358,6 +380,7 @@ describe('Event enroll API', () => {
               .set('Authorization', jwtToken)
               .expect(204)
             const eventEnrollsAfter = await eventEnrollsInDb(db)
+
             expect(eventEnrollsAfter.length).toBe(eventEnrollsAtStart.length - 1)
             expect(eventEnrollsAfter).not.toContainEqual(deletedEventEnroll)
           })
@@ -372,7 +395,6 @@ describe('Event enroll API', () => {
                 eventEnrollData: {
                   createdAt: moment(currentDate).add('5', 'minutes').format(),
                   updatedAt: null,
-                  isSpare: false,
                   values: {
                     etunimi: 'Name1',
                     radio: 'option-a'
@@ -384,7 +406,6 @@ describe('Event enroll API', () => {
                 eventEnrollData: {
                   createdAt: moment(currentDate).add('15', 'minutes').format(),
                   updatedAt: null,
-                  isSpare: false,
                   values: {
                     etunimi: 'Name2',
                     radio: 'option-b'
@@ -396,7 +417,6 @@ describe('Event enroll API', () => {
                 eventEnrollData: {
                   createdAt: moment(currentDate).add('20', 'minutes').format(),
                   updatedAt: null,
-                  isSpare: true,
                   values: {
                     etunimi: 'Name3',
                     radio: 'option-a'
@@ -408,25 +428,23 @@ describe('Event enroll API', () => {
 
             const eventEnrollsAtStart = await eventEnrollsInDbByEvent(db, complexEventId)
             const deletedEventEnroll = eventEnrollsAtStart[1]
+
             await api.delete(`/api/intra/events/${complexEventId}/enrolls/${deletedEventEnroll.id}`)
               .set('Authorization', jwtToken)
               .expect(204)
-            const eventEnrollsAfter = await eventEnrollsInDbByEvent(db, complexEventId)
-            expect(eventEnrollsAfter.length).toBe(eventEnrollsAtStart.length - 1)
-            expect(eventEnrollsAfter).not.toContainEqual(deletedEventEnroll)
 
-            const spareToNormalEnroll = eventEnrollsAfter[2]
-            const expectedUpdatedEnroll = {
-              id: 6,
-              isSpare: false,
-              createdAt: moment(currentDate).add('20', 'minutes').format(),
-              eventId: complexEventId,
-              values: {
-                etunimi: 'Name3',
-                radio: 'option-a'
-              }
-            }
-            expect(spareToNormalEnroll).toMatchObject(expectedUpdatedEnroll)
+            const eventEnrollsWithoutDeleted = eventEnrollsAtStart.filter(({ id }) => id !== deletedEventEnroll.id)
+            const expectedResults = updateArrayWithOverrides(eventEnrollsWithoutDeleted, [
+              { isSpare: false },
+              { isSpare: false },
+              { isSpare: false }
+            ])
+
+            const getResponse = await api.get(`/api/events/${complexEventId}/enrolls`)
+              .expect(200)
+              .expect('Content-Type', /application\/json/)
+
+            expect(getResponse.body).toEqual(expect.arrayContaining(expectedResults))
           })
           test('DELETE /api/intra/events/:complexEventId/enrolls does not updates last optionA when optionB enroll is deleted', async() => {
             const dummyEnrolls = [
@@ -474,22 +492,19 @@ describe('Event enroll API', () => {
             await api.delete(`/api/intra/events/${complexEventId}/enrolls/${deletedEventEnroll.id}`)
               .set('Authorization', jwtToken)
               .expect(204)
-            const eventEnrollsAfter = await eventEnrollsInDbByEvent(db, complexEventId)
-            expect(eventEnrollsAfter.length).toBe(eventEnrollsAtStart.length - 1)
-            expect(eventEnrollsAfter).not.toContainEqual(deletedEventEnroll)
 
-            const spareToNormalEnroll = eventEnrollsAfter[2]
-            const expectedUpdatedEnroll = {
-              id: 6,
-              isSpare: true,
-              createdAt: moment(currentDate).add('20', 'minutes').format(),
-              eventId: complexEventId,
-              values: {
-                etunimi: 'Name3',
-                radio: 'option-a'
-              }
-            }
-            expect(spareToNormalEnroll).toMatchObject(expectedUpdatedEnroll)
+            const eventEnrollsWithoutDeleted = eventEnrollsAtStart.filter(({ id }) => id !== deletedEventEnroll.id)
+            const expectedResults = updateArrayWithOverrides(eventEnrollsWithoutDeleted, [
+              { isSpare: false },
+              { isSpare: false },
+              { isSpare: true }
+            ])
+
+            const getResponse = await api.get(`/api/events/${complexEventId}/enrolls`)
+              .expect(200)
+              .expect('Content-Type', /application\/json/)
+
+            expect(getResponse.body).toEqual(expect.arrayContaining(expectedResults))
           })
           test('DELETE /api/intra/events/:complexEventId/enrolls does not updates last optionA when optionC unlimited enroll is deleted', async() => {
             const dummyEnrolls = [
@@ -498,7 +513,7 @@ describe('Event enroll API', () => {
                 eventEnrollData: {
                   createdAt: moment(currentDate).add('5', 'minutes').format(),
                   updatedAt: null,
-                  isSpare: false,
+                  // isSpare: false,
                   values: {
                     etunimi: 'Name1',
                     radio: 'option-a'
@@ -510,7 +525,7 @@ describe('Event enroll API', () => {
                 eventEnrollData: {
                   createdAt: moment(currentDate).add('15', 'minutes').format(),
                   updatedAt: null,
-                  isSpare: false,
+                  // isSpare: false,
                   values: {
                     etunimi: 'Name2',
                     radio: 'option-b'
@@ -522,7 +537,7 @@ describe('Event enroll API', () => {
                 eventEnrollData: {
                   createdAt: moment(currentDate).add('20', 'minutes').format(),
                   updatedAt: null,
-                  isSpare: true,
+                  // isSpare: true,
                   values: {
                     etunimi: 'Name3',
                     radio: 'option-a'
@@ -537,22 +552,19 @@ describe('Event enroll API', () => {
             await api.delete(`/api/intra/events/${complexEventId}/enrolls/${deletedEventEnroll.id}`)
               .set('Authorization', jwtToken)
               .expect(204)
-            const eventEnrollsAfter = await eventEnrollsInDbByEvent(db, complexEventId)
-            expect(eventEnrollsAfter.length).toBe(eventEnrollsAtStart.length - 1)
-            expect(eventEnrollsAfter).not.toContainEqual(deletedEventEnroll)
 
-            const spareToNormalEnroll = eventEnrollsAfter[2]
-            const expectedUpdatedEnroll = {
-              id: 6,
-              isSpare: true,
-              createdAt: moment(currentDate).add('20', 'minutes').format(),
-              eventId: complexEventId,
-              values: {
-                etunimi: 'Name3',
-                radio: 'option-a'
-              }
-            }
-            expect(spareToNormalEnroll).toMatchObject(expectedUpdatedEnroll)
+            const eventEnrollsWithoutDeleted = eventEnrollsAtStart.filter(({ id }) => id !== deletedEventEnroll.id)
+            const expectedResults = updateArrayWithOverrides(eventEnrollsWithoutDeleted, [
+              { isSpare: false },
+              { isSpare: false },
+              { isSpare: true }
+            ])
+
+            const getResponse = await api.get(`/api/events/${complexEventId}/enrolls`)
+              .expect(200)
+              .expect('Content-Type', /application\/json/)
+
+            expect(getResponse.body).toEqual(expect.arrayContaining(expectedResults))
           })
         })
       })
