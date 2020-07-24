@@ -6,7 +6,7 @@ const { decorate, decorateList, decoratePublic, decoratePublicList } = require('
 const { findById, findAll, save, remove } = require('../../../models/event/eventEnrollModel')
 const { decorate: decorateEvent } = require('../../../models/event/eventDecorators')
 const { findByIdToResultRow } = require('../../../helpers/helpers')
-const { isEnrollPossible, calculateSpareParticipants } = require('../../../models/event/enrollHelpers')
+const { isEnrollPossible, calculateSpareParticipants, isOptionAvailable } = require('../../../models/event/enrollHelpers')
 
 router.get('/', (req, res) =>
   findAll(req.db, req.params.eventId)
@@ -25,13 +25,11 @@ const createNewEnroll = req =>
   findAll(req.db, req.params.eventId)
     .then(previousEnrollResults => {
       const event = decorateEvent(req.resultRow)
-      const previousEnrolls = decorateList(previousEnrollResults)
-      isEnrollPossible(event, previousEnrolls)
+      const previousEnrolls = calculateSpareParticipants(event, decorateList(previousEnrollResults))
       const enroll = req.body
-      const newEnroll = {
-        ...enroll
-      }
-      return save(req.db, req.params.eventId, newEnroll)
+      isEnrollPossible(event, previousEnrolls)
+      isOptionAvailable(event, previousEnrolls, enroll)
+      return save(req.db, req.params.eventId, enroll)
     })
     .catch(error => {
       throw error
@@ -61,7 +59,7 @@ router.delete('/:eventEnrollId', (req, res) => {
       //   // TODO: fetch enrolls before and after removal. Then compare and possibly send messages to people who have gained real spot
       //   if(hasStillLimits(event)) {
       //     if(hasLimitedFields(event.fields)) {
-      //       const [fieldName, fieldValue] = getLimitedFieldIfEnrollMatch(event, removableEnroll)
+      //       const [fieldName, fieldValue] = getLimitedFieldIfEnrollMatch(event.fields, removableEnroll)
       //       if(fieldName) {
       //         return recalculateSpareEnrollWithLimitedField(txDb, event.id, fieldName, fieldValue)
       //           .then(() => {

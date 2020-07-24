@@ -149,7 +149,7 @@ describe('Enroll helpers', () => {
   describe('getLimitedFieldIfEnrollMatch', () => {
     it('should return name and value of limited field', () => {
       const enrollWithLimitedOption = { id: 1, isSpare: true, createdAt: mostEnrolledAt, values: { firstName: 'Name1', radio: 'optionA' } }
-      expect(getLimitedFieldIfEnrollMatch(simpleEvent, enrollWithLimitedOption)).toEqual(['radio', 'optionA'])
+      expect(getLimitedFieldIfEnrollMatch(simpleEvent.fields, enrollWithLimitedOption)).toEqual(['radio', 'optionA'])
     })
   })
   describe('getLimitedField', () => {

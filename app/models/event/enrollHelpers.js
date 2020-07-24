@@ -1,10 +1,11 @@
 const moment = require('moment')
 const { BadRequest, Forbidden } = require('http-errors')
 const { sortById } = require('../../helpers/helpers')
+const uniqBy = require('lodash/uniqBy')
 
 const hasStillLimits = event => event.reservedUntil && moment(event.reservedUntil).isAfter(moment())
 
-const isEnrollPossible = (event, previousEnrollResults) => {
+const isEnrollPossible = (event, previousEnrolls) => {
   const { maxParticipants, reserveCount } = event
   if(moment().isBefore(moment(event.activeAt))) {
     throw new Forbidden(`Enrolling hasn't stated yet`)
@@ -13,20 +14,45 @@ const isEnrollPossible = (event, previousEnrollResults) => {
   }
   if(maxParticipants != null) {
     const eventParticipantLimit = maxParticipants + reserveCount
-    if(previousEnrollResults.length >= eventParticipantLimit) {
+    if(previousEnrolls.length >= eventParticipantLimit) {
       throw new BadRequest('Event is full')
     }
   }
   return true
 }
 
-const getLimitedFieldIfEnrollMatch = (event, enroll) => {
-  const optionFields = event.fields.filter(field => !!field.options)
+const isOptionAvailable = (event, previousEnrolls, enroll) => {
+  const { fields, reserveCount } = event
+  const limitedFields = getLimitedFields(fields)
+  if(!limitedFields.length) {
+    return true
+  }
+  const enrollFieldOptionKeyPair = getLimitedFieldIfEnrollMatch(fields, enroll)
+  const fieldOptionKey = getFieldOptionKey(enrollFieldOptionKeyPair[0], enrollFieldOptionKeyPair[1])
+
+  const optionReserveCount = limitedFields.find(([field]) => field === fieldOptionKey)[1]
+  if(optionReserveCount == null) {
+    return true
+  }
+
+  const enrollsByOption = groupAndSetIsSpareByOption(limitedFields, previousEnrolls)
+  const isOptionReserveFull = enrollsByOption[fieldOptionKey].length >= optionReserveCount
+  if(!isOptionReserveFull) {
+    return true
+  }
+
+  const spareCount = previousEnrolls.filter(({ isSpare }) => isSpare).length
+  if(spareCount >= reserveCount) {
+    throw new Forbidden(`Enroll option limit is full`)
+  }
+}
+
+const getLimitedFieldIfEnrollMatch = (fields, enroll) => {
+  const optionFields = fields.filter(field => !!field.options)
   const enrollKeyValue = Object.entries(enroll.values)
     .find(([, value]) =>
-      optionFields
-        .find(field =>
-          field.options.find(option => option.name === value && option.reserveCount != null))
+      optionFields.some(field =>
+        field.options.some(option => option.name === value && option.reserveCount != null))
     )
   return enrollKeyValue || []
 }
@@ -37,16 +63,26 @@ const calculateSpareParticipants = (eventResult, eventEnrolls) => {
   // TODO: sorting by given field must be done here before and after spare calculations
   // Should this function to be called in decorator?
   const enrollsWithPossibleSpare = calculatePossibleSparePositions(eventResult, eventEnrolls)
-  return enrollsWithPossibleSpare.sort(sortById)
+  return enrollsWithPossibleSpare
 }
 
-const getIsSpareByEventLimit = (maxParticipants, eventEnrolls) =>
-  eventEnrolls.map((enroll, index) => ({
-    ...enroll,
-    isSpare: maxParticipants == null
+const getIsSpareByEventLimit = (maxParticipants, eventEnrolls) => {
+  let nonSpareEnrollCount = 0
+  return eventEnrolls.map(enroll => {
+    if(enroll.isSpare) {
+      return enroll
+    }
+    const isSpare = maxParticipants == null
       ? false
-      : index >= maxParticipants
-  }))
+      : nonSpareEnrollCount >= maxParticipants
+    const updatedEnroll = ({
+      ...enroll,
+      isSpare
+    })
+    ++nonSpareEnrollCount
+    return updatedEnroll
+  })
+}
 
 const getLimitedFields = fields =>
   fields.map(field =>
@@ -57,18 +93,22 @@ const getLimitedFields = fields =>
 
 const createFieldOptionReserveCountKeyArray = (fieldName, options) =>
   options.map(option => ([getFieldOptionKey(fieldName, option.name), option.reserveCount]))
+
 const getFieldOptionKey = (fieldName, optionName) => `${fieldName}_${optionName}`
 
 const calculatePossibleSparePositions = (eventResult, eventEnrolls) => {
   const { fields, maxParticipants } = eventResult
-  const enrollsWithEventLimitSpare = getIsSpareByEventLimit(maxParticipants, eventEnrolls)
   const limitedFields = getLimitedFields(fields)
 
   if(!limitedFields.length) {
-    return enrollsWithEventLimitSpare
+    return getIsSpareByEventLimit(maxParticipants, eventEnrolls)
   }
-  const enrollsByOption = groupAndSetIsSpareByOption(limitedFields, enrollsWithEventLimitSpare)
-  return Object.values(enrollsByOption).flat()
+  const enrollsByOption = groupAndSetIsSpareByOption(limitedFields, eventEnrolls)
+  const enrollsWithOptionSpares = Object.values(enrollsByOption)
+    .flat()
+    .sort(sortById) // TODO: sorting field to event property
+  const enrollsWithEventLimitSpare = getIsSpareByEventLimit(maxParticipants, uniqBy(enrollsWithOptionSpares, 'id'))
+  return enrollsWithEventLimitSpare
 }
 
 const groupAndSetIsSpareByOption = (limitedFields, eventEnrolls) =>
@@ -83,7 +123,7 @@ const groupAndSetIsSpareByOption = (limitedFields, eventEnrolls) =>
     const setIsSpareToEnroll = (enroll, index) =>
       reserveCount == null
         ? enroll
-        : ({ ...enroll, isSpare: index >= reserveCount || enroll.isSpare })
+        : ({ ...enroll, isSpare: index >= reserveCount })
 
     acc[fieldOptionKey] = eventEnrolls
       .filter(findEnrollsWithOption)
@@ -93,6 +133,7 @@ const groupAndSetIsSpareByOption = (limitedFields, eventEnrolls) =>
 
 module.exports = {
   isEnrollPossible,
+  isOptionAvailable,
   getLimitedFields,
   hasStillLimits,
   getLimitedFieldIfEnrollMatch,
