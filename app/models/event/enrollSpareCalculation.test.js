@@ -82,6 +82,45 @@ const defaultFields = [
   }
 ]
 
+const noneOptionFields = [
+  {
+    id: 0,
+    name: 'firstName',
+    type: 'text',
+    label: 'FirstName',
+    public: true,
+    required: true,
+    fieldName: 'Teksti',
+    maxLength: 10,
+    isTextarea: false,
+    placeholder: null
+  }
+]
+
+const onlyNonLimitedOptionFields = [
+  {
+    id: 0,
+    name: 'radio',
+    type: 'radio',
+    label: 'Valinta',
+    public: true,
+    fieldName: 'Valinta',
+    required: true,
+    options: [
+      {
+        name: 'optionA',
+        label: 'OptionA',
+        reserveCount: null
+      },
+      {
+        name: 'optionB',
+        label: 'OptionB',
+        reserveCount: null
+      }
+    ]
+  }
+]
+
 const buildEvent = (eventProperties, fields) => ({
   ...simpleEvent,
   ...(eventProperties || {}),
@@ -105,7 +144,8 @@ const eventEnrollTestCases = [
       { isSpare: false },
       { isSpare: false }
     ],
-    null // Override event properties {}
+    null, // Override event properties {},
+    null // Override event fields
   ],
   [
     'enrolls over default "maxParticipants" limit should have spares',
@@ -127,12 +167,13 @@ const eventEnrollTestCases = [
       { isSpare: true },
       { isSpare: true }
     ],
+    null,
     null
   ],
   [
     'enrolls when event does not have "reserveCount" should be spares even though event should not have reserve',
     // NOTE: spare calculator doesn't care if too many enrolls have been passed to it.
-    // It is a responsibility of enrollHelper to prevent such when new enroll is about to be created
+    // It is a responsibility of enroll validator and helpers to prevent when new enroll is about to be created
     [
       { id: 1, createdAt: mostEnrolledAt, values: { firstName: 'Name1', radio2: 'optionD' } },
       { id: 2, createdAt: mostEnrolledAt, values: { firstName: 'Name2', radio2: 'optionD' } },
@@ -151,7 +192,8 @@ const eventEnrollTestCases = [
       { isSpare: true },
       { isSpare: true }
     ],
-    { reserveCount: 0 }
+    { reserveCount: 0 },
+    null
   ],
   [
     'enrolls over field limit should have spares',
@@ -173,6 +215,7 @@ const eventEnrollTestCases = [
       { isSpare: true },
       { isSpare: true }
     ],
+    null,
     null
   ],
   [
@@ -195,7 +238,46 @@ const eventEnrollTestCases = [
       { isSpare: true },
       { isSpare: false }
     ],
-    { maxParticipants: 10 }
+    { maxParticipants: 10 },
+    null
+  ],
+  [
+    'enrolls when no option fields available',
+    [
+      { id: 1, createdAt: mostEnrolledAt, values: { firstName: 'Name1' } },
+      { id: 2, createdAt: mostEnrolledAt, values: { firstName: 'Name2' } },
+      { id: 3, createdAt: mostEnrolledAt, values: { firstName: 'Name3' } },
+      { id: 4, createdAt: mostEnrolledAt, values: { firstName: 'Name4' } },
+      { id: 5, createdAt: mostEnrolledAt, values: { firstName: 'Name5' } }
+    ],
+    [
+      { isSpare: false },
+      { isSpare: false },
+      { isSpare: false },
+      { isSpare: false },
+      { isSpare: false }
+    ],
+    null,
+    noneOptionFields
+  ],
+  [
+    'enrolls when only non limited option fields available',
+    [
+      { id: 1, createdAt: mostEnrolledAt, values: { radio: 'optionA' } },
+      { id: 2, createdAt: mostEnrolledAt, values: { radio: 'optionA' } },
+      { id: 3, createdAt: mostEnrolledAt, values: { radio: 'optionB' } },
+      { id: 4, createdAt: mostEnrolledAt, values: { radio: 'optionB' } },
+      { id: 5, createdAt: mostEnrolledAt, values: { radio: 'optionB' } }
+    ],
+    [
+      { isSpare: false },
+      { isSpare: false },
+      { isSpare: false },
+      { isSpare: false },
+      { isSpare: false }
+    ],
+    null,
+    onlyNonLimitedOptionFields
   ]
 ]
 
@@ -205,9 +287,8 @@ beforeEach(async() => {
 
 afterAll(() => { uninstallClock() })
 
-test.each([eventEnrollTestCases[2]])('%s', (_, enrolls, expectedOverrides, eventProperties) => {
+test.each(eventEnrollTestCases)('%s', (__testCaseName, enrolls, expectedOverrides, eventProperties, fields) => {
   const expectedResult = updateArrayWithOverrides(enrolls, expectedOverrides)
-  const event = buildEvent(eventProperties)
-
+  const event = buildEvent(eventProperties, fields)
   expect(calculateSpareParticipants(event, enrolls)).toEqual(expectedResult)
 })

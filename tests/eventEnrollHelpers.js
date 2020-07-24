@@ -1,7 +1,7 @@
 const { pgp } = require('../db/pgp')
 const { decorateList, decoratePublicList } = require('../app/models/event/eventEnrollDecorators')
 
-// *NOTE* enrolls relies on existing evetns 1 and 2. Defined in ./eventHelpers.js
+// *NOTE* enrolls relies on existing events 1 and 2. Defined in ./eventHelpers.js
 const initialEventEnrolls = [
   {
     id: 1,

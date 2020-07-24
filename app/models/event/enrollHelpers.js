@@ -1,6 +1,6 @@
 const moment = require('moment')
 const { BadRequest, Forbidden } = require('http-errors')
-const { partition, sortById } = require('../../helpers/helpers')
+const { sortById } = require('../../helpers/helpers')
 
 const hasStillLimits = event => event.reservedUntil && moment(event.reservedUntil).isAfter(moment())
 
@@ -20,52 +20,6 @@ const isEnrollPossible = (event, previousEnrollResults) => {
   return true
 }
 
-const determineIsSpare = (event, previousEnrolls, enroll) => {
-  const { fields, maxParticipants, reserveCount } = event
-  const eventParticipantLimit = maxParticipants + reserveCount
-
-  if(previousEnrolls.length >= eventParticipantLimit) {
-    throw new BadRequest('Event is full')
-  }
-
-  if(!hasStillLimits(event)) {
-    return false
-  }
-
-  const [spareEnrolls, regularEnrolls] = partition(previousEnrolls, enroll => enroll.isSpare)
-  const limitedFields = getLimitedFields(fields)
-  if(!hasLimitedFields(fields)) {
-    if(regularEnrolls.length < maxParticipants) {
-      return false
-    }
-    return true
-  }
-
-  // Collect info about field of this particular enroll
-  const newEnrollLimitField = Object.entries(limitedFields)
-    .map(([key, value]) => ({
-      key,
-      value: enroll.values[key],
-      reserveCount: value[enroll.values[key]]
-    }))
-  return newEnrollLimitField.some(limitedField => {
-    // const spareLimitedEnrolls = spareEnrolls.filter(enroll =>
-    //   enroll.values[limitedField.key] === limitedField.value
-    // )
-    const regularLimitedEnrolls = regularEnrolls.filter(enroll =>
-      enroll.values[limitedField.key] === limitedField.value
-    )
-    const noFieldSpace = regularLimitedEnrolls.length >= limitedField.reserveCount
-
-    if(noFieldSpace && reserveCount != null && spareEnrolls.length >= reserveCount) {
-      throw new BadRequest('Field limit reached')
-    }
-
-    const noMoreRegularSpace = regularEnrolls.length >= maxParticipants
-    return noMoreRegularSpace || noFieldSpace
-  })
-}
-
 const getLimitedFieldIfEnrollMatch = (event, enroll) => {
   const optionFields = event.fields.filter(field => !!field.options)
   const enrollKeyValue = Object.entries(enroll.values)
@@ -80,17 +34,19 @@ const getLimitedFieldIfEnrollMatch = (event, enroll) => {
 const hasLimitedFields = fields => !!getLimitedFields(fields).length
 
 const calculateSpareParticipants = (eventResult, eventEnrolls) => {
-  const { fields, maxParticipants } = eventResult
-  const enrollsWithEventLimitSpare = getIsSpareByEventLimit(maxParticipants, eventEnrolls)
-  const limitedFields = getLimitedFields(fields)
-  const enrollsByField = groupByOption(limitedFields, enrollsWithEventLimitSpare)
-  return Object.values(enrollsByField).flat().sort(sortById) // TODO: sorting field from event properties
+  // TODO: sorting by given field must be done here before and after spare calculations
+  // Should this function to be called in decorator?
+  const enrollsWithPossibleSpare = calculatePossibleSparePositions(eventResult, eventEnrolls)
+  return enrollsWithPossibleSpare.sort(sortById)
 }
 
 const getIsSpareByEventLimit = (maxParticipants, eventEnrolls) =>
-  maxParticipants != null
-    ? eventEnrolls.map((enroll, index) => ({ ...enroll, isSpare: index >= maxParticipants }))
-    : eventEnrolls
+  eventEnrolls.map((enroll, index) => ({
+    ...enroll,
+    isSpare: maxParticipants == null
+      ? false
+      : index >= maxParticipants
+  }))
 
 const getLimitedFields = fields =>
   fields.map(field =>
@@ -99,32 +55,45 @@ const getLimitedFields = fields =>
       : []
   ).flat()
 
-// const createFieldOptionReserveCountKeyArray = (fieldName, options) =>
-//   options.map(option =>
-//     option.reserveCount != null
-//       ? ([getFieldOptionKey(fieldName, option.name), option.reserveCount])
-//       : null
-//   ).filter(Boolean)
-
-const createFieldOptionReserveCountKeyArray = (fieldName, options) => {
-  const a = options.map(option => ([getFieldOptionKey(fieldName, option.name), option.reserveCount || 0]))
-  console.log(a, a.filter(Boolean))
-  return a.filter(Boolean)
-}
-
+const createFieldOptionReserveCountKeyArray = (fieldName, options) =>
+  options.map(option => ([getFieldOptionKey(fieldName, option.name), option.reserveCount]))
 const getFieldOptionKey = (fieldName, optionName) => `${fieldName}_${optionName}`
 
-const groupByOption = (limitedFields, eventEnrolls) =>
-  limitedFields.reduce((acc, [fieldOptionKey, reserveCount]) => ({
-    ...acc,
-    [fieldOptionKey]: eventEnrolls.filter(enroll =>
-      Object.entries(enroll.values)
-        .some(([optionKey, value]) => getFieldOptionKey(optionKey, value) === fieldOptionKey))
-      .map((enroll, index) => ({ ...enroll, isSpare: index >= reserveCount || enroll.isSpare }))
-  }), {})
+const calculatePossibleSparePositions = (eventResult, eventEnrolls) => {
+  const { fields, maxParticipants } = eventResult
+  const enrollsWithEventLimitSpare = getIsSpareByEventLimit(maxParticipants, eventEnrolls)
+  const limitedFields = getLimitedFields(fields)
+
+  if(!limitedFields.length) {
+    return enrollsWithEventLimitSpare
+  }
+  const enrollsByOption = groupAndSetIsSpareByOption(limitedFields, enrollsWithEventLimitSpare)
+  return Object.values(enrollsByOption).flat()
+}
+
+const groupAndSetIsSpareByOption = (limitedFields, eventEnrolls) =>
+  limitedFields.reduce((acc, [fieldOptionKey, reserveCount]) => {
+    const matchOptionKeyWithField = ([optionKey, value]) =>
+      getFieldOptionKey(optionKey, value) === fieldOptionKey
+
+    const findEnrollsWithOption = enroll =>
+      Object.entries(enroll.values).some(matchOptionKeyWithField)
+
+    // When reserveCount is unset allow as many enrolls as possible
+    const setIsSpareToEnroll = (enroll, index) =>
+      reserveCount == null
+        ? enroll
+        : ({ ...enroll, isSpare: index >= reserveCount || enroll.isSpare })
+
+    acc[fieldOptionKey] = eventEnrolls
+      .filter(findEnrollsWithOption)
+      .map(setIsSpareToEnroll)
+    return acc
+  }, {})
 
 module.exports = {
   isEnrollPossible,
+  getLimitedFields,
   hasStillLimits,
   getLimitedFieldIfEnrollMatch,
   hasLimitedFields,

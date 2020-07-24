@@ -1,8 +1,7 @@
 const moment = require('moment')
 const lolex = require('lolex')
 const { BadRequest, Forbidden } = require('http-errors')
-const { isEnrollPossible, determineIsSpare, getLimitedFieldIfEnrollMatch, getLimitedFields, calculateSpareParticipants } = require('./enrollHelpers')
-const { updateArrayWithOverrides } = require('../../helpers/helpers')
+const { isEnrollPossible, getLimitedFieldIfEnrollMatch, getLimitedFields } = require('./enrollHelpers')
 
 describe('Enroll helpers', () => {
   let fakeClock
@@ -57,7 +56,8 @@ describe('Enroll helpers', () => {
             reserveCount: 2
           }
         ]
-      }, {
+      },
+      {
         id: 2,
         name: 'radio2',
         type: 'radio',
@@ -89,7 +89,7 @@ describe('Enroll helpers', () => {
     }
   }
 
-  beforeEach(async () => {
+  beforeEach(async() => {
     setDate(initialStartTime)
   })
 
@@ -97,283 +97,6 @@ describe('Enroll helpers', () => {
     fakeClock.uninstall()
   })
 
-  describe('calculateSpareParticipants', () => {
-    describe('Event has space', () => {
-      it('should return false when regular space left', () => {
-        const oneRegularSpaceLeftEnrolls = [
-          { id: 1, createdAt: mostEnrolledAt, values: { firstName: 'Name1', radio: 'optionA' } },
-          { id: 2, createdAt: mostEnrolledAt, values: { firstName: 'Name2', radio: 'optionA' } },
-          { id: 3, createdAt: mostEnrolledAt, values: { firstName: 'Name3', radio: 'optionA' } },
-          { id: 4, createdAt: mostEnrolledAt, values: { firstName: 'Name4', radio: 'optionB' } }
-          { id: 4, createdAt: mostEnrolledAt, values: { firstName: 'Name4', radio: 'optionB' } }
-        ]
-        const expectedResult = updateArrayWithOverrides(oneRegularSpaceLeftEnrolls, [
-          { isSpare: false },
-          { isSpare: false },
-          { isSpare: false },
-          { isSpare: false },
-          { isSpare: false }
-        ])
-        expect(calculateSpareParticipants(simpleEvent, oneRegularSpaceLeftEnrolls)).toEqual(expectedResult)
-      })
-      it('should return true when no option "optionB" limit is reached', () => {
-        const optionBLimitReachedEnrolls = [
-          { id: 1, isSpare: false, createdAt: mostEnrolledAt, values: { firstName: 'Name1', radio: 'optionA' } },
-          { id: 2, isSpare: false, createdAt: mostEnrolledAt, values: { firstName: 'Name2', radio: 'optionA' } },
-          { id: 3, isSpare: false, createdAt: mostEnrolledAt, values: { firstName: 'Name3', radio: 'optionB' } },
-          { id: 4, isSpare: false, createdAt: mostEnrolledAt, values: { firstName: 'Name4', radio: 'optionB' } },
-          { id: 5, isSpare: true, createdAt: mostEnrolledAt, values: { firstName: 'Name5', radio: 'optionB' } }
-        ]
-        const optionBEnroll = {
-          values: {
-            firstName: 'Something',
-            radio: 'optionB'
-          }
-        }
-        const isSpare = determineIsSpare(simpleEvent, optionBLimitReachedEnrolls, optionBEnroll)
-        expect(isSpare).toBe(true)
-      })
-      it('should throw error when event has no spare and field reserve count is full', () => {
-        const optionBLimitReachedEnrolls = [
-          { id: 1, isSpare: false, createdAt: mostEnrolledAt, values: { firstName: 'Name1', radio: 'optionB' } },
-          { id: 2, isSpare: false, createdAt: mostEnrolledAt, values: { firstName: 'Name2', radio: 'optionB' } }
-        ]
-        const noSpareEvent = {
-          ...simpleEvent,
-          reserveCount: 0
-        }
-        const optionBEnroll = {
-          values: {
-            firstName: 'Something',
-            radio: 'optionB'
-          }
-        }
-        expect(() =>
-          determineIsSpare(noSpareEvent, optionBLimitReachedEnrolls, optionBEnroll))
-          .toThrowError('Field limit reached')
-      })
-      it('should return false when "optionA" is added even "optionB" limit is reached', () => {
-        const optionBLimitReachedEnrolls = [
-          { id: 1, isSpare: false, createdAt: mostEnrolledAt, values: { firstName: 'Name1', radio: 'optionB' } },
-          { id: 2, isSpare: false, createdAt: mostEnrolledAt, values: { firstName: 'Name2', radio: 'optionB' } }
-        ]
-        const noSpareEvent = {
-          ...simpleEvent,
-          reserveCount: 0
-        }
-        const optionBEnroll = {
-          values: {
-            firstName: 'Something',
-            radio: 'optionA'
-          }
-        }
-        const isSpare = determineIsSpare(noSpareEvent, optionBLimitReachedEnrolls, optionBEnroll)
-        expect(isSpare).toBe(false)
-      })
-      it('should return false when event limits are open', () => {
-        const oneRegularSpaceLeftEnrolls = [
-          { id: 1, isSpare: false, createdAt: mostEnrolledAt, values: { firstName: 'Name1', radio: 'optionA' } },
-          { id: 2, isSpare: false, createdAt: mostEnrolledAt, values: { firstName: 'Name2', radio: 'optionA' } },
-          { id: 3, isSpare: false, createdAt: mostEnrolledAt, values: { firstName: 'Name3', radio: 'optionB' } },
-          { id: 4, isSpare: false, createdAt: mostEnrolledAt, values: { firstName: 'Name4', radio: 'optionB' } }
-        ]
-        const timeAfterLimitsOpened = moment(eventReservedUntil).add(1, 'minute').format()
-        setDate(timeAfterLimitsOpened)
-        const optionBEnroll = {
-          values: {
-            firstName: 'Something',
-            radio: 'optionB'
-          }
-        }
-        const isSpare = determineIsSpare(simpleEvent, oneRegularSpaceLeftEnrolls, optionBEnroll)
-        expect(isSpare).toBe(false)
-      })
-    })
-    describe(`Event does not have space`, () => {
-      it('calculateSpareParticipants', () => {
-        const expectedResult = [
-          { id: 1, isSpare: false, createdAt: mostEnrolledAt, values: { firstName: 'Name1', radio: 'optionA' } },
-          { id: 2, isSpare: false, createdAt: mostEnrolledAt, values: { firstName: 'Name2', radio: 'optionA' } },
-          { id: 3, isSpare: false, createdAt: mostEnrolledAt, values: { firstName: 'Name3', radio: 'optionB' } },
-          { id: 4, isSpare: false, createdAt: mostEnrolledAt, values: { firstName: 'Name4', radio: 'optionB' } },
-          { id: 5, isSpare: true, createdAt: mostEnrolledAt, values: { firstName: 'Name5', radio: 'optionB' } }
-        ]
-        const optionBLimitReachedEnrolls = [
-          { id: 1, createdAt: mostEnrolledAt, values: { firstName: 'Name1', radio: 'optionA' } },
-          { id: 2, createdAt: mostEnrolledAt, values: { firstName: 'Name2', radio: 'optionA' } },
-          { id: 3, createdAt: mostEnrolledAt, values: { firstName: 'Name3', radio: 'optionB' } },
-          { id: 4, createdAt: mostEnrolledAt, values: { firstName: 'Name4', radio: 'optionB' } },
-          { id: 5, createdAt: mostEnrolledAt, values: { firstName: 'Name5', radio: 'optionB' } }
-        ]
-        expect(calculateSpareParticipants(simpleEvent, optionBLimitReachedEnrolls)).toEqual(expectedResult)
-      })
-
-      it('should return true when no regular space left', () => {
-        const noRegularSpaceLeftEnrolls = [
-          { id: 1, isSpare: false, createdAt: mostEnrolledAt, values: { firstName: 'Name1', radio: 'optionA' } },
-          { id: 2, isSpare: false, createdAt: mostEnrolledAt, values: { firstName: 'Name2', radio: 'optionA' } },
-          { id: 3, isSpare: false, createdAt: mostEnrolledAt, values: { firstName: 'Name3', radio: 'optionA' } },
-          { id: 4, isSpare: false, createdAt: mostEnrolledAt, values: { firstName: 'Name3', radio: 'optionA' } },
-          { id: 5, isSpare: false, createdAt: mostEnrolledAt, values: { firstName: 'Name3', radio: 'optionA' } },
-          { id: 6, isSpare: false, createdAt: mostEnrolledAt, values: { firstName: 'Name4', radio: 'optionB' } }
-        ]
-        const isSpare = determineIsSpare(simpleEvent, noRegularSpaceLeftEnrolls, dummyEnroll)
-        expect(isSpare).toBe(true)
-      })
-      it('should throw error when event is completely full', () => {
-        const noRegularOrLimitSpaceLeftEnrolls = [
-          { id: 1, isSpare: false, createdAt: mostEnrolledAt, values: { firstName: 'Name1', radio: 'optionA' } },
-          { id: 2, isSpare: false, createdAt: mostEnrolledAt, values: { firstName: 'Name2', radio: 'optionA' } },
-          { id: 3, isSpare: false, createdAt: mostEnrolledAt, values: { firstName: 'Name3', radio: 'optionA' } },
-          { id: 4, isSpare: false, createdAt: mostEnrolledAt, values: { firstName: 'Name3', radio: 'optionA' } },
-          { id: 5, isSpare: false, createdAt: mostEnrolledAt, values: { firstName: 'Name3', radio: 'optionA' } },
-          { id: 6, isSpare: false, createdAt: mostEnrolledAt, values: { firstName: 'Name4', radio: 'optionB' } },
-          { id: 7, isSpare: false, createdAt: mostEnrolledAt, values: { firstName: 'Name5', radio: 'optionB' } }
-        ]
-        expect(() =>
-          determineIsSpare(simpleEvent, noRegularOrLimitSpaceLeftEnrolls, dummyEnroll))
-          .toThrowError('Event is full')
-      })
-      it('field limit optionC is full', () => {
-        const optionCLimitIsFull = [
-          { id: 1, isSpare: false, createdAt: mostEnrolledAt, values: { firstName: 'Name1', radio: 'optionC' } },
-          { id: 2, isSpare: false, createdAt: mostEnrolledAt, values: { firstName: 'Name2', radio: 'optionC' } },
-          { id: 3, isSpare: false, createdAt: mostEnrolledAt, values: { firstName: 'Name3', radio: 'optionB' } },
-          { id: 5, isSpare: false, createdAt: mostEnrolledAt, values: { firstName: 'Name3', radio: 'optionA' } },
-          { id: 6, isSpare: true, createdAt: mostEnrolledAt, values: { firstName: 'Name4', radio: 'optionC' } },
-          { id: 7, isSpare: true, createdAt: mostEnrolledAt, values: { firstName: 'Name5', radio: 'optionC' } },
-          { id: 7, isSpare: true, createdAt: mostEnrolledAt, values: { firstName: 'Name5', radio: 'optionC' } }
-        ]
-        const fieldLimitFullEvent = {
-          activeAt: eventActiveAt,
-          activeUntil: eventActiveUntil,
-          reservedUntil: eventReservedUntil,
-          maxParticipants: 5,
-          reserveCount: 3,
-          fields: [
-            {
-              id: 0,
-              name: 'firstName',
-              type: 'text',
-              label: 'FirstName',
-              public: true,
-              required: true,
-              fieldName: 'Teksti',
-              maxLength: 10,
-              isTextarea: false,
-              placeholder: null
-            },
-            {
-              id: 1,
-              name: 'radio',
-              type: 'radio',
-              label: 'Valinta',
-              public: true,
-              fieldName: 'Valinta',
-              required: true,
-              options: [
-                {
-                  name: 'optionA',
-                  label: 'OptionA',
-                  reserveCount: 30
-                },
-                {
-                  name: 'optionB',
-                  label: 'OptionB',
-                  value: false,
-                  reserveCount: 3
-                },
-                {
-                  name: 'optionC',
-                  label: 'OptionC',
-                  value: false,
-                  reserveCount: 2
-                }
-              ]
-            }
-          ]
-        }
-        const dummyCEnroll = {
-          values: {
-            firstName: 'Fuller',
-            radio: 'optionC'
-          }
-        }
-        expect(() =>
-          determineIsSpare(fieldLimitFullEvent, optionCLimitIsFull, dummyCEnroll))
-          .toThrowError('Field limit reached')
-      })
-    })
-    describe('Event has no field limits', () => {
-      const reserveFreeEvent = {
-        activeAt: eventActiveAt,
-        activeUntil: eventActiveUntil,
-        reservedUntil: eventReservedUntil,
-        maxParticipants: 5,
-        reserveCount: 2,
-        fields: [
-          {
-            id: 0,
-            name: 'firstName',
-            type: 'text',
-            label: 'FirstName',
-            public: true,
-            required: true,
-            fieldName: 'Teksti',
-            maxLength: 10,
-            isTextarea: false,
-            placeholder: null
-          },
-          {
-            id: 1,
-            name: 'radio',
-            type: 'radio',
-            label: 'Valinta',
-            public: true,
-            fieldName: 'Valinta',
-            required: true,
-            options: [
-              {
-                name: 'optionA',
-                label: 'OptionA',
-                reserveCount: null
-              },
-              {
-                name: 'optionB',
-                label: 'OptionB',
-                value: false,
-                reserveCount: null
-              }
-            ]
-          }
-        ]
-      }
-      describe('reserve is full', () => {
-        it('should return true when max participants is full', () => {
-          const noRegularOrLimitSpaceLeftEnrolls = [
-            { id: 1, isSpare: false, createdAt: mostEnrolledAt, values: { firstName: 'Name1', radio: 'optionB' } },
-            { id: 2, isSpare: false, createdAt: mostEnrolledAt, values: { firstName: 'Name2', radio: 'optionB' } },
-            { id: 3, isSpare: false, createdAt: mostEnrolledAt, values: { firstName: 'Name4', radio: 'optionA' } },
-            { id: 4, isSpare: false, createdAt: mostEnrolledAt, values: { firstName: 'Name4', radio: 'optionA' } },
-            { id: 5, isSpare: false, createdAt: mostEnrolledAt, values: { firstName: 'Name4', radio: 'optionA' } },
-            { id: 6, isSpare: true, createdAt: mostEnrolledAt, values: { firstName: 'Name4', radio: 'optionA' } }
-          ]
-          expect(determineIsSpare(reserveFreeEvent, noRegularOrLimitSpaceLeftEnrolls, dummyEnroll))
-            .toBe(true)
-        })
-        it('should return false when max participants not full', () => {
-          const noRegularOrLimitSpaceLeftEnrolls = [
-            { id: 1, isSpare: false, createdAt: mostEnrolledAt, values: { firstName: 'Name1', radio: 'optionB' } },
-            { id: 2, isSpare: false, createdAt: mostEnrolledAt, values: { firstName: 'Name2', radio: 'optionB' } },
-            { id: 3, isSpare: false, createdAt: mostEnrolledAt, values: { firstName: 'Name4', radio: 'optionA' } },
-            { id: 4, isSpare: false, createdAt: mostEnrolledAt, values: { firstName: 'Name4', radio: 'optionA' } }
-          ]
-          expect(determineIsSpare(reserveFreeEvent, noRegularOrLimitSpaceLeftEnrolls, dummyEnroll))
-            .toBe(false)
-        })
-      })
-    })
-  })
   describe('isEnrollPossible', () => {
     describe('enrolling before event has started', () => {
       it('should throw Forbidden error', () => {
@@ -431,20 +154,19 @@ describe('Enroll helpers', () => {
   })
   describe('getLimitedField', () => {
     it('should return event fields with options which has reservedCount', () => {
-      const expectedResult = {
-        radio: {
-          optionA: 4,
-          optionB: 2
-        },
-        radio2: {
-          optionC: 5
-        }
-      }
-      console.log(getLimitedFields(simpleEvent.fields))
+      const expectedResult = [
+        ['radio_optionA', 4],
+        ['radio_optionB', 2],
+        ['radio2_optionC', 5],
+        ['radio2_optionD', null]
+      ]
       expect(getLimitedFields(simpleEvent.fields)).toEqual(expectedResult)
     })
     it('should return object with null values when fields does not have reserve count', () => {
-      const expectedResult = { radio: {} }
+      const expectedResult = [
+        ['radio_optionA', null],
+        ['radio_optionB', null]
+      ]
       const event = {
         ...simpleEvent,
         fields: [

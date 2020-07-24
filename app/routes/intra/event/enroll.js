@@ -3,10 +3,10 @@ const publicRouter = require('express-promise-router')({ mergeParams: true })
 
 const { validateCreate, validateUpdate } = require('../../../models/event/eventEnrollValidators')
 const { decorate, decorateList, decoratePublic, decoratePublicList } = require('../../../models/event/eventEnrollDecorators')
-const { findById, findAll, save, remove, recalculateSpareEnrolls, recalculateSpareEnrollWithLimitedField } = require('../../../models/event/eventEnrollModel')
+const { findById, findAll, save, remove } = require('../../../models/event/eventEnrollModel')
 const { decorate: decorateEvent } = require('../../../models/event/eventDecorators')
 const { findByIdToResultRow } = require('../../../helpers/helpers')
-const { isEnrollPossible, hasStillLimits, getLimitedFieldIfEnrollMatch, hasLimitedFields, calculateSpareParticipants } = require('../../../models/event/enrollHelpers')
+const { isEnrollPossible, calculateSpareParticipants } = require('../../../models/event/enrollHelpers')
 
 router.get('/', (req, res) =>
   findAll(req.db, req.params.eventId)
@@ -47,37 +47,38 @@ router.put('/:eventEnrollId', validateUpdate(), (req, res) => {
 
 router.delete('/:eventEnrollId', (req, res) => {
   const { eventEnrollId } = req.params
-  const removableEnroll = decorate(req.resultRow)
+  // const removableEnroll = decorate(req.resultRow)
 
-  if(removableEnroll.isSpare) {
-    return remove(req.db, eventEnrollId)
-      .then(() => res.status(204).send())
-  }
-  const event = decorateEvent(req.resultRowParent)
+  // if(removableEnroll.isSpare) {
+  //   return remove(req.db, eventEnrollId)
+  //     .then(() => res.status(204).send())
+  // }
+  // const event = decorateEvent(req.resultRowParent)
 
   return req.startTx(txDb =>
     remove(txDb, eventEnrollId)
-      .then(() => {
-        // TODO: fetch enrolls before and after removal. Then compare and possibly send messages to people who have gained real spot
-        if(hasStillLimits(event)) {
-          if(hasLimitedFields(event.fields)) {
-            const [fieldName, fieldValue] = getLimitedFieldIfEnrollMatch(event, removableEnroll)
-            if(fieldName) {
-              return recalculateSpareEnrollWithLimitedField(txDb, event.id, fieldName, fieldValue)
-                .then(() => {
-                  return true
-                })
-            }
-            return true
-          }
-        }
-      })
-      .then(wasSomethingUpdated => {
-        if(!wasSomethingUpdated) {
-          return recalculateSpareEnrolls(txDb, event.id)
-        }
-      }))
-    .then(() => res.status(204).send())
+      // .then(() => {
+      //   // TODO: fetch enrolls before and after removal. Then compare and possibly send messages to people who have gained real spot
+      //   if(hasStillLimits(event)) {
+      //     if(hasLimitedFields(event.fields)) {
+      //       const [fieldName, fieldValue] = getLimitedFieldIfEnrollMatch(event, removableEnroll)
+      //       if(fieldName) {
+      //         return recalculateSpareEnrollWithLimitedField(txDb, event.id, fieldName, fieldValue)
+      //           .then(() => {
+      //             return true
+      //           })
+      //       }
+      //       return true
+      //     }
+      //   }
+      // })
+      // .then(wasSomethingUpdated => {
+      //   if(!wasSomethingUpdated) {
+      //     return recalculateSpareEnrolls(txDb, event.id)
+      //   }
+      // }))
+      .then(() => res.status(204).send())
+  )
 })
 
 const findEventEnrollById = findByIdToResultRow('Event enroll', 'eventEnrollId', findById)
