@@ -20,7 +20,8 @@ router.post('/', validateRegistrationCreate(), (req, res) => {
   const { email, username } = req.body
   return Promise.all([
     fetchUserForRegistration({ email, username }),
-    passwordHash.hash(req.body.password)])
+    passwordHash.hash(req.body.password)
+  ])
     .then(([result, passwordHash]) => {
       if(result && result.length > 0) {
         const errors = []

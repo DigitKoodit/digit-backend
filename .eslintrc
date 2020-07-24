@@ -62,6 +62,14 @@
       "error",
       "never"
     ],
+    "array-bracket-newline": [
+      "error",
+      "consistent"
+    ],
+    "array-element-newline": [
+      "error",
+      "consistent"
+    ],
     "object-curly-spacing": [
       "error",
       "always"
