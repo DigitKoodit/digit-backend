@@ -1,6 +1,6 @@
 const decorate = navItem => {
   const { nav_item_id: id, parent_id: parentId, site_page_id: sitePageId } = navItem
-  const { title, path, isCustom, weight, showOnNavigation, isPublished, isEmphasized, isRedirect } = navItem.nav_item_data
+  const { title, path, isCustom, weight, showOnNavigation, isPublished, isEmphasized, isRedirect, externalPath } = navItem.nav_item_data
 
   return {
     id,
@@ -13,7 +13,8 @@ const decorate = navItem => {
     isPublished,
     sitePageId,
     isEmphasized,
-    isRedirect
+    isRedirect,
+    externalPath
   }
 }
 
