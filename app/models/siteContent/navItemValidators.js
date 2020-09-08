@@ -20,8 +20,9 @@ const schema = {
   weight: getIntValidator('Paino', { min: 0 }),
   showOnNavigation: getBooleanValidator('Näkyvyys'),
   isPublished: getBooleanValidator('Julkaistu'),
-  isEmphasized: getBooleanValidator('Korostettu valikossa'),
-  isRedirect: getBooleanValidator("Polku ulkopuoliselle sivulle")
+  isEmphasized: setIsOptional(getBooleanValidator('Korostettu valikossa')),
+  isRedirect: setIsOptional(getBooleanValidator("Polku ulkopuoliselle sivulle")),
+  externalPath: setIsOptional(getStringValidator(("Ulkoinen polku")))
 }
 
 const validateCreate = () =>
