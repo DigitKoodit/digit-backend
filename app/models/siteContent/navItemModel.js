@@ -3,19 +3,19 @@ const isNil = require('lodash/isNil')
 
 const navItem = {}
 
-navItem.findById = (db, id, published) => {
+navItem.findById = (db, id, isPublished) => {
   if(!id) {
     throw new NotFound('Navigation item not found')
   }
   return db.one(`SELECT * FROM nav_item 
     WHERE nav_item_id = $1 
-    ${!isNil(published)
+    ${!isNil(isPublished)
     ? ` AND (nav_item_data->>'isPublished')::boolean = true`
     : ''}
     ORDER BY nav_item_id`, id)
 }
 
-navItem.findAll = (db, published) => db.any(`SELECT * FROM nav_item ${!isNil(published)
+navItem.findAll = (db, isPublished) => db.any(`SELECT * FROM nav_item ${!isNil(isPublished)
   ? `WHERE (nav_item_data->>'isPublished')::boolean = true`
   : ''}
     ORDER BY nav_item_id`)
