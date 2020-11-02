@@ -21,8 +21,8 @@ const schema = {
   showOnNavigation: getBooleanValidator('Näkyvyys'),
   isPublished: getBooleanValidator('Julkaistu'),
   isEmphasized: setIsOptional(getBooleanValidator('Korostettu valikossa')),
-  isRedirect: setIsOptional(getBooleanValidator("Polku ulkopuoliselle sivulle")),
-  externalPath: setIsOptional(getStringValidator(("Ulkoinen polku")))
+  isRedirect: setIsOptional(getBooleanValidator('Polku ulkopuoliselle sivulle')),
+  externalPath: setIsOptional(getStringValidator(('Ulkoinen polku')))
 }
 
 const validateCreate = () =>
