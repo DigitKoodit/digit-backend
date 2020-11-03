@@ -43,7 +43,7 @@ const insertPageTemplate = {
     [{
       title: 'Sivupohja',
       description: 'Peruspohja',
-      published: true,
+      isHidden: false,
       createdAt: moment().format(),
       updatedAt: null,
       content: encodeURI(basicSiteTemplate)

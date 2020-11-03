@@ -4,7 +4,7 @@ const { getValidator, getStringValidator, getBooleanValidator, setIsOptional } =
 const schema = {
   title: getStringValidator('Otsikko'),
   description: setIsOptional(getStringValidator('Kuvaus')),
-  published: getBooleanValidator('Julkaistu'),
+  isHidden: getBooleanValidator('Piilotettu'),
   content: getStringValidator('Sisältö')
 }
 
