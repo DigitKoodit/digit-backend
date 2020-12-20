@@ -44,6 +44,7 @@ app.use(databaseMiddlewares)
 app.use(authMiddlewares)
 
 app.use('/api', routes)
+app.use('/ping', (req, res) => res.send({ ok: 200 }))
 
 const staticUploadsPath = process.env.NODE_ENV === 'test' ? '/uploads_test' : '/uploads'
 // TODO: handle uplods using Nginx
