@@ -37,6 +37,16 @@ else
   echo "Retrieve cache"
 fi
 
-pm2 startOrRestart ~/server_setup_files/pm2.config.js --update-env
+# If app does not exists it still might have some applied migrations
+APP_ID=$(pm2 id $APPNAME)
+echo $APP_ID
+if [[ $APP_ID != "[]" ]]; then
+  echo "App is already running"
+  pm2 restart $APPNAME --update-env
+else
+  echo "Starting for the first time"
+  cp ~/server_setup_files/applied_migrations.json $TARGET/migrations/applied_digit.json
+  pm2 start ~/server_setup_files/pm2.config.js
+fi
 
 echo "Started $APPNAME"
