@@ -15,7 +15,7 @@ curl -sL https://deb.nodesource.com/setup_14.x | sudo -E bash -
 sudo apt install -y nodejs
 
 # User and permissions
-sudo adduser digit --disabled-password
+sudo useradd --create-home --shell /bin/bash digit
 sudo usermod -aG www-data digit
 sudo mkdir -p /var/www
 sudo chown -R www-data:www-data /var/www
