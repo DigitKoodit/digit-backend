@@ -37,6 +37,6 @@ else
   echo "Retrieve cache"
 fi
 
-pm2 startOrRestart ~/server_setup_files/pm2.config.js
+pm2 startOrRestart ~/server_setup_files/pm2.config.js --update-env
 
 echo "Started $APPNAME"
