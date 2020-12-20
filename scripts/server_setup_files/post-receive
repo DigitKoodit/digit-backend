@@ -1,0 +1,52 @@
+#!/bin/bash
+GIT_DIR="/home/digit/digit_api.git"
+MASTER_BRANCH="master"
+# STAGING_BRANCH="staging" # Option for other branches
+
+while read oldrev newrev ref; do
+  # only checking out the master (or whatever branch you would like to deploy)
+  if [[ $ref = refs/heads/$MASTER_BRANCH ]]; then
+    BRANCH=$MASTER_BRANCH
+    TARGET="/var/www/digit_api"
+    APPNAME="digit-api"
+  # elif [[ $ref = refs/heads/$STAGING_BRANCH ]]; then
+  #   BRANCH=$STAGING_BRANCH
+  #   TARGET="/var/www/digit_api-staging"
+  #   APPNAME="digit-api-staging"
+  else
+    echo "Ref $ref received. Doing nothing: only the ${BRANCH} branch may be deployed on this server."
+    exit
+  fi
+done
+
+echo "Deploying ${BRANCH} branch to server..."
+git --work-tree=$TARGET --git-dir=$GIT_DIR checkout -f $BRANCH
+
+cd $TARGET
+
+CHECKSUM_FILE=./checksum
+CACHED_FILE=./package-lock.json
+CHECKSUM_NEW="$(cksum $CACHED_FILE)"
+
+if [[ ! -f "$CHECKSUM_FILE" || $(head $CHECKSUM_FILE) != $CHECKSUM_NEW ]]; then
+  echo "Install packages"
+  npm install
+  echo "Update cache"
+  echo $CHECKSUM_NEW >$CHECKSUM_FILE
+else
+  echo "Retrieve cache"
+fi
+
+# If app does not exists it still might have some applied migrations
+APP_ID=$(pm2 id $APPNAME)
+echo $APP_ID
+if [[ $APP_ID != "[]" ]]; then
+  echo "App is already running"
+  pm2 restart $APPNAME --update-env
+else
+  echo "Starting for the first time"
+  cp ~/server_setup_files/applied_migrations.json $TARGET/migrations/applied_digit.json
+  pm2 start ~/server_setup_files/pm2.config.js
+fi
+
+echo "Started $APPNAME"

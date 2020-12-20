@@ -21,4 +21,4 @@ module.exports = {
       node_args: '--inspect=0.0.0.0:9230'
     }
   ]
-};
+}
