@@ -4,22 +4,22 @@ const isNil = require('lodash/isNil')
 
 const SitePage = {}
 
-SitePage.findById = (db, id, published) => {
+SitePage.findById = (db, id, isPublished) => {
   if(!id) {
     throw new NotFound('Site SHIT page not found')
   }
   return db.one(`SELECT * FROM site_page 
     WHERE site_page_id = ${id}
-    ${!isNil(published)
-    ? ` AND (site_page_data->>'published')::boolean = true`
+    ${!isNil(isPublished)
+    ? ` AND (site_page_data->>'isHidden')::boolean = false`
     : ''}
     ORDER BY site_page_id`)
 }
 
-SitePage.findAll = (db, published) =>
+SitePage.findAll = (db, isPublished) =>
   db.any(`SELECT * FROM site_page 
-  ${!isNil(published)
-    ? ` WHERE (site_page_data->>'published')::boolean = true`
+  ${!isNil(isPublished)
+    ? ` WHERE (site_page_data->>'isHidden')::boolean = false`
     : ''}
     ORDER BY site_page_id`)
 

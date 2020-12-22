@@ -1,6 +1,6 @@
 version: 2
 jobs:
-  build:
+  test:
     working_directory: ~/tmp
     docker:
       - image: circleci/node
@@ -16,8 +16,7 @@ jobs:
         environment:
           POSTGRES_USER: ${DBUSER}
           POSTGRES_PASSWORD: ${DBPASSWORD}
-          POSTGRES_DB: digit_testing
-        
+          POSTGRES_DB: digit_testing        
     steps: 
       - checkout
       - restore_cache: # special step to restore the dependency cache
@@ -38,3 +37,22 @@ jobs:
       - run:
           name: Run tests
           command: npm run test-ci
+  deploy:
+    working_directory: ~/tmp
+    docker:
+      - image: cimg/base:stable
+    steps:
+      - add_ssh_keys:
+          fingerprints:
+            - "da:40:bb:6f:4b:bf:09:ca:a9:ed:e0:1a:95:22:c6:c7"
+      - run: |
+          git remote add production elmeri.digit.fi:digit_api.git
+          git push production master
+  
+workflows:
+build_and_test:
+  jobs:
+    - test
+    - deploy:
+      requires:
+        - test

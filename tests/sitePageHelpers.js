@@ -6,7 +6,7 @@ const initialSitePages = [
     site_page_data: {
       title: 'Info',
       description: 'Page containing information',
-      published: true,
+      isHidden: false,
       createdAt: `2019-01-01T12:00:00+02:00`,
       updatedAt: null,
       content: 'The information that this page contains'
@@ -16,7 +16,7 @@ const initialSitePages = [
 
 const selectAllSql = 'SELECT * FROM site_page ORDER BY site_page_id'
 const selectPublicSql = `SELECT * FROM site_page 
-  WHERE (site_page_data->>'isPublished')::boolean = true
+  WHERE (site_page_data->>'isHidden')::boolean = false
   ORDER BY site_page_id`
 
 const sitePagesInDb = (db, getPublished) =>

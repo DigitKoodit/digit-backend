@@ -84,7 +84,7 @@ describe('Site page API', () => {
           const newSitePage = {
             title: 'Page title',
             description: 'Description',
-            published: true,
+            isHidden: false,
             content: 'New content'
           }
           const response = await api.post('/api/intra/pages')
@@ -106,7 +106,7 @@ describe('Site page API', () => {
             ...sitePagesAtStart[updatedEntryIndex],
             title: 'Updated title',
             description: 'Updated Description',
-            published: false,
+            isHidden: true,
             content: 'Updated content'
           }
 

@@ -44,6 +44,8 @@ Launch containers and start developing. `Pm2` will take care of reloading applic
 
 **Docker commands**
 
+**When container is running**
+
 Open database\
 `docker exec -it digit_db psql -U digit -h localhost digit_dev`
 Show logs\
@@ -51,8 +53,21 @@ Show logs\
 Run bash commands from host terminal against running container:\
 `docker exec digit_backend ps`
 
-Open a bash session on a running container:\
+Open a bash session into a running container:\
 `docker container exec -it digit_backend /bin/sh`
+
+**Start new container instance**
+
+Format is:\
+`docker-compose [-f <compose.yaml>] run [--rm] <service name> <command>`
+
+Project has four services: `backend` and `db` for development and `backendtest` and `dbtest` for testing.
+
+Open dev database connection:\
+`docker-compose run --rm db psql -U digit -h db digit_dev`
+
+Open shell to dev container:\
+`docker-compose run --rm backend /bin/sh`
 
 ### Testing
 

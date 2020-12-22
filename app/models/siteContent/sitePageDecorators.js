@@ -1,12 +1,12 @@
 
 const decorate = sitePage => {
-  const { title, description, published, createdAt, updatedAt, content } = sitePage.site_page_data
+  const { title, description, isHidden, createdAt, updatedAt, content } = sitePage.site_page_data
 
   return {
     id: sitePage.site_page_id,
     title,
     description,
-    published,
+    isHidden,
     createdAt,
     updatedAt,
     content
