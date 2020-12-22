@@ -50,6 +50,7 @@ jobs:
           git push production master
   
 workflows:
+  version: 2
   test_and_deploy:
     jobs:
       - test
