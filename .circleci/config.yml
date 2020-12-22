@@ -50,9 +50,9 @@ jobs:
           git push production master
   
 workflows:
-build_and_test:
-  jobs:
-    - test
-    - deploy:
-      requires:
-        - test
+  test_and_deploy:
+    jobs:
+      - test
+      - deploy:
+        requires:
+          - test
