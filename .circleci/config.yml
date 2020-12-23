@@ -1,6 +1,6 @@
 version: 2
 jobs:
-  test:
+  build:
     working_directory: ~/tmp
     docker:
       - image: circleci/node
@@ -12,7 +12,7 @@ jobs:
           TEST_JWT_TOKEN: ${JWT_TEST_TOKEN}
           TEST_SECRET_KEY: ${JWT_SECRET_KEY}
           TZ: "Europe/Helsinki"
-      - image: circleci/postgres:11-alpine
+      - image: circleci/postgres:9.6.9-alpine
         environment:
           POSTGRES_USER: ${DBUSER}
           POSTGRES_PASSWORD: ${DBPASSWORD}
@@ -51,10 +51,10 @@ jobs:
   
 workflows:
   version: 2
-  test_and_deploy:
+  build_and_deploy:
     jobs:
-      - test
+      - build
       - deploy:
           requires:
-            - test
+            - build
 
