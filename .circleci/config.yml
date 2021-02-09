@@ -3,7 +3,7 @@ jobs:
   build:
     working_directory: ~/tmp
     docker:
-      - image: cimg/base:2020.01
+      - image: cimg/node:15.8.0
     steps: 
       - checkout
       - setup_remote_docker
